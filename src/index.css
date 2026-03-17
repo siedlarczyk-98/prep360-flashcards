@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 213 56% 24%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 56% 24%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 56% 24%;
+
+    --primary: 213 56% 24%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 100% 67%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 18 98% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 88%;
+    --ring: 18 98% 53%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 213 56% 18%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 18 98% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 56% 28%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 213 40% 30%;
+    --sidebar-ring: 18 98% 53%;
+
+    /* Brand tokens */
+    --navy: 213 56% 24%;
+    --navy-light: 213 40% 35%;
+    --navy-dark: 213 56% 14%;
+    --brand-orange: 18 98% 53%;
+    --brand-orange-light: 18 90% 60%;
+    --brand-blue: 214 100% 67%;
+    --brand-blue-light: 214 90% 78%;
+    --sky: 214 100% 67%;
+    --sky-light: 214 90% 78%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --gradient-navy: linear-gradient(135deg, hsl(213 56% 24%), hsl(213 56% 14%));
+    --gradient-orange: linear-gradient(135deg, hsl(18 98% 53%), hsl(18 90% 60%));
+    --shadow-card: 0 4px 24px -4px hsl(213 56% 24% / 0.06);
+    --shadow-elevated: 0 12px 40px -8px hsl(213 56% 24% / 0.12);
+  }
+
+  .dark {
+    --background: 215 35% 8%;
+    --foreground: 210 20% 96%;
+    --card: 215 30% 12%;
+    --card-foreground: 210 20% 96%;
+    --popover: 215 30% 12%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 214 100% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 18%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 215 25% 18%;
+    --muted-foreground: 215 15% 60%;
+    --accent: 18 98% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 25% 22%;
+    --input: 215 25% 22%;
+    --ring: 18 98% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Allow text selection in inputs and textareas */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  h1, h2, h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Subtle concentric circles background texture */
+.bg-pattern {
+  background-image:
+    radial-gradient(circle at 20% 30%, hsl(213 56% 24% / 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, hsl(18 98% 53% / 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, hsl(214 100% 67% / 0.015) 0%, transparent 60%);
+  background-size: 100% 100%;
+}
+
+.bg-circles-pattern {
+  position: relative;
+}
+
+.bg-circles-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    repeating-radial-gradient(circle at 30% 40%, transparent 0px, transparent 40px, hsl(213 56% 24% / 0.3) 41px, transparent 42px),
+    repeating-radial-gradient(circle at 70% 60%, transparent 0px, transparent 60px, hsl(214 100% 67% / 0.2) 61px, transparent 62px),
+    repeating-radial-gradient(circle at 50% 80%, transparent 0px, transparent 80px, hsl(18 98% 53% / 0.15) 81px, transparent 82px);
+  z-index: 0;
+}
