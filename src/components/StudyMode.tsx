@@ -152,7 +152,14 @@ const StudyMode = ({ cards: initialCards, email, onClose }: StudyModeProps) => {
                   className="relative w-full min-h-[180px] max-h-[calc(100vh-160px)]"
                 >
                   {/* Front */}
-                  <div className="backface-hidden absolute inset-0 rounded-2xl bg-card p-5 flex flex-col justify-between overflow-y-auto" style={{ boxShadow: "var(--shadow-elevated)" }}>
+                  <div
+                    className="backface-hidden absolute inset-0 rounded-2xl bg-card p-5 flex flex-col justify-between overflow-y-auto transition-[visibility,opacity] duration-200"
+                    style={{
+                      boxShadow: "var(--shadow-elevated)",
+                      visibility: flipped ? "hidden" : "visible",
+                      opacity: flipped ? 0 : 1,
+                    }}
+                  >
                     <p className="text-foreground font-semibold text-base leading-relaxed tracking-[-0.01em]">
                       {card.frente}
                     </p>
@@ -168,7 +175,14 @@ const StudyMode = ({ cards: initialCards, email, onClose }: StudyModeProps) => {
                   </div>
 
                   {/* Back */}
-                  <div className="backface-hidden rotate-y-180 absolute inset-0 rounded-2xl bg-card border-2 border-accent p-5 flex flex-col justify-between overflow-y-auto" style={{ boxShadow: "var(--shadow-elevated)" }}>
+                  <div
+                    className="backface-hidden rotate-y-180 absolute inset-0 rounded-2xl bg-card border-2 border-accent p-5 flex flex-col justify-between overflow-y-auto transition-[visibility,opacity] duration-200"
+                    style={{
+                      boxShadow: "var(--shadow-elevated)",
+                      visibility: flipped ? "visible" : "hidden",
+                      opacity: flipped ? 1 : 0,
+                    }}
+                  >
                     <div>
                       <p className="text-foreground font-semibold text-base leading-relaxed tracking-[-0.01em]">{card.verso}</p>
                       {card.exemplo && (
