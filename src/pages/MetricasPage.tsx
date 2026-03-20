@@ -103,7 +103,7 @@ const MetricasPage = () => {
   useEffect(() => {
     if (loading || !email) return;
     setLoadingDesempenho(true);
-    fetchDesempenhoQuestoes(email, tentativa)
+    fetchDesempenhoQuestoes(tentativa)
       .then(setDesempenho)
       .catch((err) => {
         console.error("[MetricasPage] Erro desempenho:", err);

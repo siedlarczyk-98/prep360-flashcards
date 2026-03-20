@@ -61,7 +61,7 @@ const StudyMode = ({ cards: initialCards, email, onClose, isManualMode = false }
     setSubmitting(true);
     if (!isManualMode) {
       try {
-        const result = await registerStudy(email, card.id, difficulty);
+        const result = await registerStudy(card.id, difficulty);
         if (result?.proximaRevisao) {
           toast.success("Resposta registrada!", { description: `Próxima revisão: ${formatNextReview(result.proximaRevisao)}` });
         }

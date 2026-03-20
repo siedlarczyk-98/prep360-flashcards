@@ -24,7 +24,7 @@ const StudyHub = () => {
 
   const { data: resumo, isLoading: loadingResumo } = useQuery({
     queryKey: ["resumo-semanal", email],
-    queryFn: () => fetchResumoSemanal(email),
+    queryFn: () => fetchResumoSemanal(),
     enabled: !!email,
   });
 

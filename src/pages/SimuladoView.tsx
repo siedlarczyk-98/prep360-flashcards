@@ -52,7 +52,7 @@ const SimuladoView = () => {
     if (!escolhaUsuario || !questaoAtual || !email) return;
     setIsSubmitting(true);
     try {
-      const resultado = await responderQuestao(email, questaoAtual.id, escolhaUsuario);
+      const resultado = await responderQuestao(questaoAtual.id, escolhaUsuario);
       setResultadoAPI(resultado);
       setHistorico((prev) => [...prev, { questao: questaoAtual, escolha: escolhaUsuario, acertou: resultado.acertou, gabarito_correto: resultado.gabarito_correto, feedback_prof: resultado.feedback_prof, percentual_global_acerto: resultado.percentual_global_acerto }]);
     } catch {

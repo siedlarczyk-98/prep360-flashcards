@@ -36,7 +36,7 @@ const SimuladoFiltros = () => {
 
   const { data: aulasDisponiveis = [], isLoading } = useQuery({
     queryKey: ["aulas-com-questoes", email],
-    queryFn: () => fetchAulasComQuestoes(email),
+    queryFn: () => fetchAulasComQuestoes(),
     enabled: !!email && modo === "pos-aula"
   });
 

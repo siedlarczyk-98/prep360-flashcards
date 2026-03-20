@@ -102,7 +102,7 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
     setSyncing(true);
     try {
       const { fetchEstudoManual } = await import("@/lib/api");
-      const cards = await fetchEstudoManual(email, aulaParam);
+      const cards = await fetchEstudoManual(aulaParam);
       if (cards.length === 0) {
         toast.info("Nenhum card encontrado para sincronizar.");
         return;

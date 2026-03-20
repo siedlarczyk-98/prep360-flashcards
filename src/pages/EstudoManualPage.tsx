@@ -18,7 +18,7 @@ const EstudoManualPage = () => {
 
   const { data: cards = [], isLoading } = useQuery({
     queryKey: ["estudo-manual", email, aulaId],
-    queryFn: () => fetchEstudoManual(email, aulaId),
+    queryFn: () => fetchEstudoManual(aulaId),
     enabled: !!email,
   });
 
