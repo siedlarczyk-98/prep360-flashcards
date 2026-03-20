@@ -80,10 +80,10 @@ const MetricasPage = () => {
     }
     setLoading(true);
     Promise.all([
-      fetchResumoSemanal(email),
-      fetchProgressStats(email),
-      fetchAtividadeDiaria(email),
-      fetchDesempenhoQuestoes(email, tentativa),
+      fetchResumoSemanal(),
+      fetchProgressStats(),
+      fetchAtividadeDiaria(),
+      fetchDesempenhoQuestoes(tentativa),
     ])
       .then(([r, s, a, d]) => {
         setResumo(r);
@@ -103,7 +103,7 @@ const MetricasPage = () => {
   useEffect(() => {
     if (loading || !email) return;
     setLoadingDesempenho(true);
-    fetchDesempenhoQuestoes(email, tentativa)
+    fetchDesempenhoQuestoes(tentativa)
       .then(setDesempenho)
       .catch((err) => {
         console.error("[MetricasPage] Erro desempenho:", err);

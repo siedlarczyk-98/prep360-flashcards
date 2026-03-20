@@ -36,7 +36,7 @@ const Agenda = () => {
 
   const { data: agendaData, isLoading } = useQuery({
     queryKey: ["agenda-completa", email, currentPage],
-    queryFn: () => fetchAgendaCompleta(email, currentPage, 100),
+    queryFn: () => fetchAgendaCompleta(currentPage, 100),
     enabled: !!email,
   });
 

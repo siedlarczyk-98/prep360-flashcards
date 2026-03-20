@@ -38,27 +38,27 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
 
   const { data: todayCards = [], isLoading: isLoadingToday } = useQuery<FlashCard[]>({
     queryKey: ["cards-today", email],
-    queryFn: () => fetchCardsForToday(email)
+    queryFn: () => fetchCardsForToday()
   });
 
   const { data: newCards = [], isLoading: isLoadingNew } = useQuery<FlashCard[]>({
     queryKey: ["cards-new", email],
-    queryFn: () => fetchNewCards(email)
+    queryFn: () => fetchNewCards()
   });
 
   const { data: allCards = [], isLoading: isLoadingAll } = useQuery<FlashCard[]>({
     queryKey: ["cards", email],
-    queryFn: () => fetchCards(email)
+    queryFn: () => fetchCards()
   });
 
   const { data: progressStats } = useQuery({
     queryKey: ["progress-stats", email],
-    queryFn: () => fetchProgressStats(email)
+    queryFn: () => fetchProgressStats()
   });
 
   const { data: progressoDisciplinas = [] } = useQuery({
     queryKey: ["progresso-disciplinas", email],
-    queryFn: () => fetchProgressoDisciplinas(email)
+    queryFn: () => fetchProgressoDisciplinas()
   });
 
   const isLoading = isLoadingToday || isLoadingNew || isLoadingAll;
@@ -102,7 +102,7 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
     setSyncing(true);
     try {
       const { fetchEstudoManual } = await import("@/lib/api");
-      const cards = await fetchEstudoManual(email, aulaParam);
+      const cards = await fetchEstudoManual(aulaParam);
       if (cards.length === 0) {
         toast.info("Nenhum card encontrado para sincronizar.");
         return;

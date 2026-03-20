@@ -12,19 +12,19 @@ const StudyHub = () => {
 
   const { data: cardsHoje, isLoading: loadingCards } = useQuery({
     queryKey: ["cards-hoje", email],
-    queryFn: () => fetchCardsForToday(email),
+    queryFn: () => fetchCardsForToday(),
     enabled: !!email,
   });
 
   const { data: questoes, isLoading: loadingQuestoes } = useQuery({
     queryKey: ["questoes", email],
-    queryFn: () => fetchQuestoes({ email, apenas_liberadas: true }),
+    queryFn: () => fetchQuestoes({ apenas_liberadas: true }),
     enabled: !!email,
   });
 
   const { data: resumo, isLoading: loadingResumo } = useQuery({
     queryKey: ["resumo-semanal", email],
-    queryFn: () => fetchResumoSemanal(email),
+    queryFn: () => fetchResumoSemanal(),
     enabled: !!email,
   });
 
