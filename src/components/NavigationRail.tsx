@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Brain, Calendar, Target, Menu, HelpCircle, MessageCircle, LogOut } from "lucide-react";
+import { Home, Brain, Calendar, Target, BarChart3, Menu, HelpCircle, MessageCircle, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
 import logoHeader from "@/assets/logo-header.png";
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { path: "/dashboard", label: "Flashcards", icon: Brain },
   { path: "/agenda", label: "Agenda", icon: Calendar },
   { path: "/simulado-filtros", label: "Questões", icon: Target },
+  { path: "/dashboard/metricas", label: "Métricas", icon: BarChart3 },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -16,6 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Flashcards",
   "/agenda": "Agenda de Estudos",
   "/simulado-filtros": "Treino com Questões",
+  "/dashboard/metricas": "Métricas",
   "/como-funciona": "Como Funciona",
 };
 
