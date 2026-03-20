@@ -4,15 +4,48 @@
  */
 const BASE_URL = "https://prep360.up.railway.app/api";
 
-const JSON_HEADERS = {
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-};
-
 /**
  * Resolve o problema de caracteres especiais em e-mails (como o '+')
  */
 const getSafeEmail = (email: string) => encodeURIComponent(email);
+
+/**
+ * Wrapper autenticado para fetch.
+ * Injeta Authorization: Bearer <token> e trata 401/403 (sessão expirada).
+ */
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem("userToken");
+  const headers: Record<string, string> = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("userEmail");
+    window.location.href = "/";
+    throw new Error("Sessão expirada");
+  }
+
+  return res;
+}
+
+/** Login: identifica usuário e retorna JWT */
+export async function identificarUsuario(email: string): Promise<{ token: string }> {
+  const res = await fetch(`${BASE_URL}/auth/identificar-usuario`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Erro ao identificar usuário");
+  return res.json();
+}
 
 // --- 1. INTERFACES (DEFINIÇÕES DE DADOS) ---
 
@@ -87,21 +120,21 @@ export type DifficultyLevel = "again" | "hard" | "good" | "easy" | "dificil" | "
 
 /** Agenda unificada: Aulas, Simulados e Flashcards por tema */
 export async function fetchAgendaCompleta(email: string, pagina = 1, limite = 10): Promise<AgendaCompleta> {
-  const res = await fetch(`${BASE_URL}/agenda-completa?email=${getSafeEmail(email)}&pagina=${pagina}&limite=${limite}`);
+  const res = await authFetch(`${BASE_URL}/agenda-completa?email=${getSafeEmail(email)}&pagina=${pagina}&limite=${limite}`);
   if (!res.ok) throw new Error("Erro ao buscar agenda completa");
   return res.json();
 }
 
 /** Todos os cards liberados para o usuário (usado no Dashboard) */
 export async function fetchCards(email: string): Promise<FlashCard[]> {
-  const res = await fetch(`${BASE_URL}/cards-pendentes?email=${getSafeEmail(email)}`);
+  const res = await authFetch(`${BASE_URL}/cards-pendentes?email=${getSafeEmail(email)}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 /** Cards para revisar HOJE (SRS) */
 export async function fetchCardsForToday(email: string): Promise<FlashCard[]> {
-  const res = await fetch(`${BASE_URL}/cards-para-hoje?email=${getSafeEmail(email)}`);
+  const res = await authFetch(`${BASE_URL}/cards-para-hoje?email=${getSafeEmail(email)}`);
   if (!res.ok) throw new Error("Erro ao buscar cards para hoje");
   return res.json();
 }
@@ -109,7 +142,7 @@ export async function fetchCardsForToday(email: string): Promise<FlashCard[]> {
 /** Estatísticas do Dashboard (rota modular) */
 export async function fetchProgressStats(email: string): Promise<ProgressStats> {
   try {
-    const res = await fetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    const res = await authFetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`);
     if (!res.ok) {
       console.error(`[fetchProgressStats] HTTP ${res.status}: ${res.statusText}`);
       return { aprendendo: 0, revisando: 0, memorizados: 0 };
@@ -129,7 +162,7 @@ export interface ResumoSemanal {
 
 export async function fetchResumoSemanal(email: string): Promise<ResumoSemanal> {
   try {
-    const res = await fetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    const res = await authFetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`);
     if (!res.ok) {
       console.error(`[fetchResumoSemanal] HTTP ${res.status}: ${res.statusText}`);
       return { flashcards: 0, questoes: 0 };
@@ -143,7 +176,7 @@ export async function fetchResumoSemanal(email: string): Promise<ResumoSemanal> 
 
 /** Progresso por matéria */
 export async function fetchProgressoDisciplinas(email: string): Promise<ProgressoDisciplina[]> {
-  const res = await fetch(`${BASE_URL}/progresso-disciplinas?email=${getSafeEmail(email)}`);
+  const res = await authFetch(`${BASE_URL}/progresso-disciplinas?email=${getSafeEmail(email)}`);
   if (!res.ok) return [];
   return res.json();
 }
@@ -155,14 +188,14 @@ export async function fetchCardsByStatus(email: string, status: DifficultyLevel)
   if (status === "medio") statusParaBanco = "good";
   if (status === "facil") statusParaBanco = "easy";
 
-  const res = await fetch(`${BASE_URL}/cards-por-status?email=${getSafeEmail(email)}&nivel=${statusParaBanco}`);
+  const res = await authFetch(`${BASE_URL}/cards-por-status?email=${getSafeEmail(email)}&nivel=${statusParaBanco}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 /** Cards que o usuário ainda não começou a estudar */
 export async function fetchNewCards(email: string): Promise<FlashCard[]> {
-  const res = await fetch(`${BASE_URL}/cards-novos?email=${getSafeEmail(email)}`);
+  const res = await authFetch(`${BASE_URL}/cards-novos?email=${getSafeEmail(email)}`);
   if (!res.ok) return [];
   return res.json();
 }
@@ -171,7 +204,7 @@ export async function fetchNewCards(email: string): Promise<FlashCard[]> {
 export async function fetchEstudoManual(email: string, aulaId?: string): Promise<FlashCard[]> {
   let url = `${BASE_URL}/estudo-manual?email=${getSafeEmail(email)}`;
   if (aulaId) url += `&aula_id=${encodeURIComponent(aulaId)}`;
-  const res = await fetch(url);
+  const res = await authFetch(url);
   if (!res.ok) return [];
   return res.json();
 }
@@ -186,7 +219,7 @@ export interface AulaComQuestoes {
 
 /** Busca aulas que possuem questões disponíveis para o aluno */
 export async function fetchAulasComQuestoes(email: string): Promise<AulaComQuestoes[]> {
-  const res = await fetch(`${BASE_URL}/questoes/aulas-disponiveis?email=${getSafeEmail(email)}`);
+  const res = await authFetch(`${BASE_URL}/questoes/aulas-disponiveis?email=${getSafeEmail(email)}`);
   if (!res.ok) return [];
   return res.json();
 }
@@ -195,9 +228,8 @@ export async function fetchAulasComQuestoes(email: string): Promise<AulaComQuest
 
 /** Registra feedback do SRS (again, hard, good, easy) */
 export async function registerStudy(email: string, cardId: number, resposta: string) {
-  const res = await fetch(`${BASE_URL}/revisar`, {
+  const res = await authFetch(`${BASE_URL}/revisar`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, card_id: cardId, resposta }),
   });
   if (!res.ok) throw new Error("Erro ao registrar estudo");
@@ -228,16 +260,15 @@ export async function fetchQuestoes(params: {
   if (params.limite) parts.push(`limite=${params.limite}`);
 
   const queryString = parts.join("&");
-  const res = await fetch(`${BASE_URL}/questoes?${queryString}`);
+  const res = await authFetch(`${BASE_URL}/questoes?${queryString}`);
   if (!res.ok) throw new Error("Erro ao buscar questões");
   return res.json();
 }
 
 /** Envia a resposta do aluno e recebe o veredito */
 export async function responderQuestao(email: string, questao_id: number, escolha: string): Promise<ResultadoResposta> {
-  const res = await fetch(`${BASE_URL}/questoes/responder`, {
+  const res = await authFetch(`${BASE_URL}/questoes/responder`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, questao_id, escolha }),
   });
   if (!res.ok) throw new Error("Erro ao enviar resposta da questão");
@@ -253,7 +284,7 @@ export interface EstatisticasAula {
 
 export async function fetchEstatisticasAula(email: string, aulaId: string): Promise<EstatisticasAula | null> {
   try {
-    const res = await fetch(`${BASE_URL}/questoes/estatisticas-aula?email=${getSafeEmail(email)}&aula_id=${encodeURIComponent(aulaId)}`);
+    const res = await authFetch(`${BASE_URL}/questoes/estatisticas-aula?email=${getSafeEmail(email)}&aula_id=${encodeURIComponent(aulaId)}`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -270,7 +301,7 @@ export interface RaioXQuestao {
 
 export async function fetchRaioXQuestao(questaoId: number, email: string): Promise<RaioXQuestao | null> {
   try {
-    const res = await fetch(`${BASE_URL}/questoes/raio-x/${questaoId}?email=${getSafeEmail(email)}`);
+    const res = await authFetch(`${BASE_URL}/questoes/raio-x/${questaoId}?email=${getSafeEmail(email)}`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -297,7 +328,7 @@ export interface AtividadeDiaria {
 
 export async function fetchAtividadeDiaria(email: string): Promise<AtividadeDiaria[]> {
   try {
-    const res = await fetch(`${BASE_URL}/stats/atividade-diaria?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    const res = await authFetch(`${BASE_URL}/stats/atividade-diaria?email=${getSafeEmail(email)}`);
     if (!res.ok) {
       console.error(`[fetchAtividadeDiaria] HTTP ${res.status}: ${res.statusText}`);
       return [];
@@ -324,7 +355,7 @@ export interface DesempenhoArea {
 
 export async function fetchDesempenhoQuestoes(email: string, tentativa: "primeira" | "ultima"): Promise<DesempenhoArea[]> {
   try {
-    const res = await fetch(`${BASE_URL}/stats/desempenho-questoes?email=${getSafeEmail(email)}&tentativa=${tentativa}`, { headers: JSON_HEADERS });
+    const res = await authFetch(`${BASE_URL}/stats/desempenho-questoes?email=${getSafeEmail(email)}&tentativa=${tentativa}`);
     if (!res.ok) {
       console.error(`[fetchDesempenhoQuestoes] HTTP ${res.status}: ${res.statusText}`);
       return [];
