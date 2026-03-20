@@ -32,6 +32,7 @@ const NavigationRail = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("userToken");
     navigate("/", { replace: true });
     setOpen(false);
   };

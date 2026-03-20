@@ -4,15 +4,48 @@
  */
 const BASE_URL = "https://prep360.up.railway.app/api";
 
-const JSON_HEADERS = {
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-};
-
 /**
  * Resolve o problema de caracteres especiais em e-mails (como o '+')
  */
 const getSafeEmail = (email: string) => encodeURIComponent(email);
+
+/**
+ * Wrapper autenticado para fetch.
+ * Injeta Authorization: Bearer <token> e trata 401/403 (sessão expirada).
+ */
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem("userToken");
+  const headers: Record<string, string> = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("userEmail");
+    window.location.href = "/";
+    throw new Error("Sessão expirada");
+  }
+
+  return res;
+}
+
+/** Login: identifica usuário e retorna JWT */
+export async function identificarUsuario(email: string): Promise<{ token: string }> {
+  const res = await fetch(`${BASE_URL}/auth/identificar-usuario`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Erro ao identificar usuário");
+  return res.json();
+}
 
 // --- 1. INTERFACES (DEFINIÇÕES DE DADOS) ---
 
