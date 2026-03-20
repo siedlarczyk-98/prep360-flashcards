@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { identificarUsuario } from "@/lib/api";
 import LoginScreen from "@/components/LoginScreen";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,13 +14,6 @@ const Index = () => {
     const token = localStorage.getItem("userToken");
     if (token) {
       navigate("/hub", { replace: true });
-      return;
-    }
-
-    // Auto-login via URL param (iframe)
-    const emailFromUrl = searchParams.get("email");
-    if (emailFromUrl) {
-      handleLogin(emailFromUrl);
       return;
     }
 
