@@ -4,6 +4,11 @@
  */
 const BASE_URL = "https://prep360.up.railway.app/api";
 
+const JSON_HEADERS = {
+  'Accept': 'application/json',
+  'Content-Type': 'application/json',
+};
+
 /**
  * Resolve o problema de caracteres especiais em e-mails (como o '+')
  */
