@@ -4,6 +4,11 @@
  */
 const BASE_URL = "https://prep360.up.railway.app/api";
 
+const JSON_HEADERS = {
+  'Accept': 'application/json',
+  'Content-Type': 'application/json',
+};
+
 /**
  * Resolve o problema de caracteres especiais em e-mails (como o '+')
  */
@@ -103,9 +108,17 @@ export async function fetchCardsForToday(email: string): Promise<FlashCard[]> {
 
 /** Estatísticas do Dashboard (rota modular) */
 export async function fetchProgressStats(email: string): Promise<ProgressStats> {
-  const res = await fetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`);
-  if (!res.ok) return { aprendendo: 0, revisando: 0, memorizados: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchProgressStats] HTTP ${res.status}: ${res.statusText}`);
+      return { aprendendo: 0, revisando: 0, memorizados: 0 };
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[fetchProgressStats] Network error:", err);
+    throw err;
+  }
 }
 
 /** Resumo semanal: flashcards feitos + questões respondidas nos últimos 7 dias */
@@ -115,9 +128,17 @@ export interface ResumoSemanal {
 }
 
 export async function fetchResumoSemanal(email: string): Promise<ResumoSemanal> {
-  const res = await fetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`);
-  if (!res.ok) return { flashcards: 0, questoes: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchResumoSemanal] HTTP ${res.status}: ${res.statusText}`);
+      return { flashcards: 0, questoes: 0 };
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[fetchResumoSemanal] Network error:", err);
+    throw err;
+  }
 }
 
 /** Progresso por matéria */
@@ -259,6 +280,14 @@ export async function fetchRaioXQuestao(questaoId: number, email: string): Promi
 
 // --- 5. MÉTRICAS ---
 
+export interface AtividadeDiariaRaw {
+  dia: string;
+  flashcards: number;
+  questoes: number;
+  aulas: number;
+  volume: number;
+}
+
 export interface AtividadeDiaria {
   data: string;
   flashcards: number;
@@ -267,9 +296,23 @@ export interface AtividadeDiaria {
 }
 
 export async function fetchAtividadeDiaria(email: string): Promise<AtividadeDiaria[]> {
-  const res = await fetch(`${BASE_URL}/stats/atividade-diaria?email=${getSafeEmail(email)}`);
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/atividade-diaria?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchAtividadeDiaria] HTTP ${res.status}: ${res.statusText}`);
+      return [];
+    }
+    const raw: AtividadeDiariaRaw[] = await res.json();
+    return raw.map((r) => ({
+      data: r.dia.split("T")[0],
+      flashcards: r.flashcards,
+      questoes: r.questoes,
+      aulas: r.aulas,
+    }));
+  } catch (err) {
+    console.error("[fetchAtividadeDiaria] Network error:", err);
+    throw err;
+  }
 }
 
 export interface DesempenhoArea {
@@ -280,9 +323,17 @@ export interface DesempenhoArea {
 }
 
 export async function fetchDesempenhoQuestoes(email: string, tentativa: "primeira" | "ultima"): Promise<DesempenhoArea[]> {
-  const res = await fetch(`${BASE_URL}/stats/desempenho-questoes?email=${getSafeEmail(email)}&tentativa=${tentativa}`);
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/desempenho-questoes?email=${getSafeEmail(email)}&tentativa=${tentativa}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchDesempenhoQuestoes] HTTP ${res.status}: ${res.statusText}`);
+      return [];
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[fetchDesempenhoQuestoes] Network error:", err);
+    throw err;
+  }
 }
 
 // --- 6. INTEGRAÇÃO ANKI ---
