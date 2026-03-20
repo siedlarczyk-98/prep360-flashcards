@@ -80,10 +80,10 @@ const MetricasPage = () => {
     }
     setLoading(true);
     Promise.all([
-      fetchResumoSemanal(email),
-      fetchProgressStats(email),
-      fetchAtividadeDiaria(email),
-      fetchDesempenhoQuestoes(email, tentativa),
+      fetchResumoSemanal(),
+      fetchProgressStats(),
+      fetchAtividadeDiaria(),
+      fetchDesempenhoQuestoes(tentativa),
     ])
       .then(([r, s, a, d]) => {
         setResumo(r);
