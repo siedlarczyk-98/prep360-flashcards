@@ -91,7 +91,11 @@ const MetricasPage = () => {
         setAtividade(a);
         setDesempenho(d);
       })
-      .catch(() => setError("Não foi possível carregar as métricas."))
+      .catch((err) => {
+        console.error("[MetricasPage] Erro ao carregar métricas:", err);
+        setError("Não foi possível carregar as métricas.");
+        toast.error("Erro ao carregar métricas", { description: String(err?.message || err) });
+      })
       .finally(() => setLoading(false));
   }, [email, navigate]);
 
@@ -101,7 +105,11 @@ const MetricasPage = () => {
     setLoadingDesempenho(true);
     fetchDesempenhoQuestoes(email, tentativa)
       .then(setDesempenho)
-      .catch(() => setDesempenho([]))
+      .catch((err) => {
+        console.error("[MetricasPage] Erro desempenho:", err);
+        setDesempenho([]);
+        toast.error("Erro ao carregar desempenho por área");
+      })
       .finally(() => setLoadingDesempenho(false));
   }, [tentativa]);
 
