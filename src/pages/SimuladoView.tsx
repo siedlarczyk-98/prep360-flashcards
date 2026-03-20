@@ -29,7 +29,7 @@ const SimuladoView = () => {
   const { data: questoes, isLoading } = useQuery({
     queryKey: ["questoes-simulado", email, modo, aulaId, grandeArea, limite],
     queryFn: () =>
-      fetchQuestoes({ email, apenas_liberadas: true, modo, aula_id: aulaId, grande_area: grandeArea, instituicao, limite }),
+      fetchQuestoes({ apenas_liberadas: true, modo, aula_id: aulaId, grande_area: grandeArea, instituicao, limite }),
     enabled: !!email,
   });
 
