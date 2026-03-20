@@ -257,7 +257,35 @@ export async function fetchRaioXQuestao(questaoId: number, email: string): Promi
   }
 }
 
-// --- 5. INTEGRAÇÃO ANKI ---
+// --- 5. MÉTRICAS ---
+
+export interface AtividadeDiaria {
+  data: string;
+  flashcards: number;
+  questoes: number;
+  aulas: number;
+}
+
+export async function fetchAtividadeDiaria(email: string): Promise<AtividadeDiaria[]> {
+  const res = await fetch(`${BASE_URL}/stats/atividade-diaria?email=${getSafeEmail(email)}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export interface DesempenhoArea {
+  grande_area: string;
+  percentual: number;
+  total: number;
+  acertos: number;
+}
+
+export async function fetchDesempenhoQuestoes(email: string, tentativa: "primeira" | "ultima"): Promise<DesempenhoArea[]> {
+  const res = await fetch(`${BASE_URL}/stats/desempenho-questoes?email=${getSafeEmail(email)}&tentativa=${tentativa}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
+// --- 6. INTEGRAÇÃO ANKI ---
 
 export async function syncWithAnki(cards: FlashCard[]) {
   const ankiRequest = async (action: string, params: any) => {
