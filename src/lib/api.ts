@@ -108,9 +108,17 @@ export async function fetchCardsForToday(email: string): Promise<FlashCard[]> {
 
 /** Estatísticas do Dashboard (rota modular) */
 export async function fetchProgressStats(email: string): Promise<ProgressStats> {
-  const res = await fetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`);
-  if (!res.ok) return { aprendendo: 0, revisando: 0, memorizados: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/progresso-srs?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchProgressStats] HTTP ${res.status}: ${res.statusText}`);
+      return { aprendendo: 0, revisando: 0, memorizados: 0 };
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[fetchProgressStats] Network error:", err);
+    throw err;
+  }
 }
 
 /** Resumo semanal: flashcards feitos + questões respondidas nos últimos 7 dias */
@@ -120,9 +128,17 @@ export interface ResumoSemanal {
 }
 
 export async function fetchResumoSemanal(email: string): Promise<ResumoSemanal> {
-  const res = await fetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`);
-  if (!res.ok) return { flashcards: 0, questoes: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/stats/resumo-7-dias?email=${getSafeEmail(email)}`, { headers: JSON_HEADERS });
+    if (!res.ok) {
+      console.error(`[fetchResumoSemanal] HTTP ${res.status}: ${res.statusText}`);
+      return { flashcards: 0, questoes: 0 };
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[fetchResumoSemanal] Network error:", err);
+    throw err;
+  }
 }
 
 /** Progresso por matéria */
