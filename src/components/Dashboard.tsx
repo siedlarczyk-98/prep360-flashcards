@@ -53,7 +53,7 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
 
   const { data: progressStats } = useQuery({
     queryKey: ["progress-stats", email],
-    queryFn: () => fetchProgressStats(email)
+    queryFn: () => fetchProgressStats()
   });
 
   const { data: progressoDisciplinas = [] } = useQuery({
