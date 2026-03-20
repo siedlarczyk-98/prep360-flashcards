@@ -220,6 +220,18 @@ export async function fetchAulasComQuestoes(): Promise<AulaComQuestoes[]> {
   return res.json();
 }
 
+/** Lista de instituições disponíveis para o modo simulado */
+export async function fetchInstituicoes(): Promise<string[]> {
+  try {
+    const res = await authFetch(`${BASE_URL}/questoes/instituicoes`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 // --- 3. FUNÇÕES DE ENVIO (POST) ---
 
 /** Registra feedback do SRS (again, hard, good, easy) */
