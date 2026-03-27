@@ -137,7 +137,7 @@ const Agenda = () => {
               <div className="flex items-center gap-1.5 mb-2">
                 <Trophy className="w-3.5 h-3.5 text-accent" />
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Próximos Simulados
+                  Próximos Eventos em Destaque
                 </span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
