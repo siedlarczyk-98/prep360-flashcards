@@ -17,6 +17,7 @@ import "shepherd.js/dist/css/shepherd.css";
 const StudyHub = () => {
   const navigate = useNavigate();
   const email = localStorage.getItem("userEmail") || "";
+  const tourRef = useRef<Shepherd.Tour | null>(null);
   const tourRef = useRef<InstanceType<typeof Shepherd.Tour> | null>(null);
 
   const { data: cardsHoje, isLoading: loadingCards } = useQuery({
@@ -76,6 +77,26 @@ const StudyHub = () => {
           secondary: true,
         },
         { text: "Começar →", action: tour.next },
+      ],
+    });
+
+    tour.addStep({
+      id: "como-funciona-flashcard",
+      text: `
+    <div style="text-align: center">
+      <img 
+        src="https://s3-sa-east-1.amazonaws.com/avp-development/cursos/materiais_auxiliares/flashcards21774635691904.png" 
+        alt="Flashcards" 
+        style="width: 100%; border-radius: 10px; margin-bottom: 10px; object-fit: cover;"
+      />
+      <p style="font-size: 12px; color: hsl(215 15% 50%); margin: 0">
+        Os flashcards usam repetição espaçada para fixar o conteúdo na memória de longo prazo.
+      </p>
+    </div>
+  `,
+      buttons: [
+        { text: "← Voltar", action: tour.back, secondary: true },
+        { text: "Próximo →", action: tour.next },
       ],
     });
 
