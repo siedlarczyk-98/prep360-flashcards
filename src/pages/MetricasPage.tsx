@@ -2,37 +2,21 @@ import { useEffect, useState, useMemo, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
-  Zap,
-  ClipboardList,
-  BookOpen,
-  RefreshCw,
-  CheckCircle2,
-  Loader2,
-  AlertCircle,
+  ArrowLeft, Zap, ClipboardList, BookOpen, RefreshCw,
+  CheckCircle2, Loader2, AlertCircle, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import {
-  fetchResumoSemanal,
-  fetchProgressStats,
-  fetchAtividadeDiaria,
-  fetchDesempenhoQuestoes,
-  type ResumoSemanal,
-  type ProgressStats,
-  type AtividadeDiaria,
-  type DesempenhoArea,
+  fetchResumoSemanal, fetchProgressStats, fetchAtividadeDiaria,
+  fetchDesempenhoQuestoes, fetchDesempenhoComparativo,
+  type ResumoSemanal, type ProgressStats, type AtividadeDiaria,
+  type DesempenhoArea, type ResultadoComparativo,
 } from "@/lib/api";
 import { format, subDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-/* ───────── helpers ───────── */
 
 const srsTooltips: Record<string, string> = {
   aprendendo: "Cards que você viu pela primeira vez recentemente. Eles aparecerão com mais frequência até serem absorvidos.",
@@ -58,8 +42,6 @@ function barColor(pct: number) {
   return "bg-destructive";
 }
 
-/* ───────── component ───────── */
-
 const MetricasPage = () => {
   const navigate = useNavigate();
   const email = localStorage.getItem("userEmail") || "";
@@ -70,43 +52,46 @@ const MetricasPage = () => {
   const [srs, setSrs] = useState<ProgressStats>({ aprendendo: 0, revisando: 0, memorizados: 0 });
   const [atividade, setAtividade] = useState<AtividadeDiaria[]>([]);
   const [desempenho, setDesempenho] = useState<DesempenhoArea[]>([]);
+  const [comparativo, setComparativo] = useState<ResultadoComparativo | null>(null);
   const [tentativa, setTentativa] = useState<"primeira" | "ultima">("primeira");
   const [loadingDesempenho, setLoadingDesempenho] = useState(false);
 
   useEffect(() => {
-    if (!email) {
-      navigate("/", { replace: true });
-      return;
-    }
+    if (!email) { navigate("/", { replace: true }); return; }
     setLoading(true);
     Promise.all([
       fetchResumoSemanal(),
       fetchProgressStats(),
       fetchAtividadeDiaria(),
       fetchDesempenhoQuestoes(tentativa),
+      fetchDesempenhoComparativo(tentativa),
     ])
-      .then(([r, s, a, d]) => {
+      .then(([r, s, a, d, c]) => {
         setResumo(r);
         setSrs(s);
         setAtividade(a);
         setDesempenho(d);
+        if (c) setComparativo(c);
       })
       .catch((err) => {
-        console.error("[MetricasPage] Erro ao carregar métricas:", err);
         setError("Não foi possível carregar as métricas.");
         toast.error("Erro ao carregar métricas", { description: String(err?.message || err) });
       })
       .finally(() => setLoading(false));
   }, [email, navigate]);
 
-  // reload desempenho when tentativa changes (skip initial)
   useEffect(() => {
     if (loading || !email) return;
     setLoadingDesempenho(true);
-    fetchDesempenhoQuestoes(tentativa)
-      .then(setDesempenho)
-      .catch((err) => {
-        console.error("[MetricasPage] Erro desempenho:", err);
+    Promise.all([
+      fetchDesempenhoQuestoes(tentativa),
+      fetchDesempenhoComparativo(tentativa),
+    ])
+      .then(([d, c]) => {
+        setDesempenho(d);
+        if (c) setComparativo(c);
+      })
+      .catch(() => {
         setDesempenho([]);
         toast.error("Erro ao carregar desempenho por área");
       })
@@ -118,13 +103,14 @@ const MetricasPage = () => {
 
   if (!email) return null;
 
-  /* ───── entrance anim ───── */
   const ease = [0.16, 1, 0.3, 1] as const;
-  const stagger = { hidden: { opacity: 0, y: 16, filter: "blur(4px)" }, show: (i: number) => ({ opacity: 1, y: 0, filter: "blur(0px)", transition: { delay: i * 0.08, duration: 0.5, ease } }) };
+  const stagger = {
+    hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
+    show: (i: number) => ({ opacity: 1, y: 0, filter: "blur(0px)", transition: { delay: i * 0.08, duration: 0.5, ease } }),
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,12 +118,7 @@ const MetricasPage = () => {
         className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3"
       >
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="rounded-full w-8 h-8 text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full w-8 h-8 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
@@ -155,17 +136,14 @@ const MetricasPage = () => {
           </div>
         )}
 
-        {/* ── Section 1: Últimos 7 dias ── */}
+        {/* Seção 1: Resumo 7 dias */}
         <section>
           <motion.h2 variants={stagger} custom={0} initial="hidden" animate="show" className="text-sm font-semibold text-foreground mb-2">
             Últimos 7 dias
           </motion.h2>
           <div className="grid grid-cols-2 gap-3">
             {loading ? (
-              <>
-                <Skeleton className="h-20 rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
-              </>
+              <><Skeleton className="h-20 rounded-xl" /><Skeleton className="h-20 rounded-xl" /></>
             ) : (
               <>
                 <motion.div variants={stagger} custom={1} initial="hidden" animate="show" className="bg-card rounded-xl p-4 shadow-sm">
@@ -191,18 +169,14 @@ const MetricasPage = () => {
           </div>
         </section>
 
-        {/* ── Section 2: Memorização (SRS) ── */}
+        {/* Seção 2: SRS */}
         <section>
           <motion.h2 variants={stagger} custom={3} initial="hidden" animate="show" className="text-sm font-semibold text-foreground mb-2">
             Memorização (SRS)
           </motion.h2>
           <div className="grid grid-cols-3 gap-3">
             {loading ? (
-              <>
-                <Skeleton className="h-20 rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
-              </>
+              <><Skeleton className="h-20 rounded-xl" /><Skeleton className="h-20 rounded-xl" /><Skeleton className="h-20 rounded-xl" /></>
             ) : (
               [
                 { key: "aprendendo" as const, label: "Aprendendo", value: srs.aprendendo, Icon: BookOpen, accent: "hsl(var(--brand-orange))" },
@@ -211,13 +185,7 @@ const MetricasPage = () => {
               ].map((item, i) => (
                 <Tooltip key={item.key}>
                   <TooltipTrigger asChild>
-                    <motion.div
-                      variants={stagger}
-                      custom={4 + i}
-                      initial="hidden"
-                      animate="show"
-                      className="bg-card rounded-xl p-4 shadow-sm cursor-default"
-                    >
+                    <motion.div variants={stagger} custom={4 + i} initial="hidden" animate="show" className="bg-card rounded-xl p-4 shadow-sm cursor-default">
                       <div className="flex items-center gap-1.5 mb-1">
                         <item.Icon className="w-3.5 h-3.5" style={{ color: item.accent }} />
                         <span className="text-[11px] text-muted-foreground font-medium">{item.label}</span>
@@ -225,30 +193,20 @@ const MetricasPage = () => {
                       <p className="text-2xl font-bold text-foreground tabular-nums">{item.value}</p>
                     </motion.div>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-[220px] text-xs">
-                    {srsTooltips[item.key]}
-                  </TooltipContent>
+                  <TooltipContent side="bottom" className="max-w-[220px] text-xs">{srsTooltips[item.key]}</TooltipContent>
                 </Tooltip>
               ))
             )}
           </div>
         </section>
 
-        {/* ── Section 3: Atividade Diária ── */}
+        {/* Seção 3: Atividade Diária */}
         <section>
           <motion.h2 variants={stagger} custom={7} initial="hidden" animate="show" className="text-sm font-semibold text-foreground mb-2">
             Atividade Diária
           </motion.h2>
-          {loading ? (
-            <Skeleton className="h-44 rounded-xl" />
-          ) : (
-            <motion.div
-              variants={stagger}
-              custom={8}
-              initial="hidden"
-              animate="show"
-              className="bg-card rounded-xl p-4 shadow-sm"
-            >
+          {loading ? <Skeleton className="h-44 rounded-xl" /> : (
+            <motion.div variants={stagger} custom={8} initial="hidden" animate="show" className="bg-card rounded-xl p-4 shadow-sm">
               <div className="flex items-end gap-2 h-32">
                 {days.map((day) => {
                   const total = day.flashcards + day.questoes + day.aulas;
@@ -257,10 +215,7 @@ const MetricasPage = () => {
                     <Tooltip key={day.data}>
                       <TooltipTrigger asChild>
                         <div className="flex-1 flex flex-col items-center gap-1 h-full justify-end cursor-default">
-                          <div
-                            className="w-full rounded-md bg-[hsl(var(--brand-blue))] transition-all duration-300 min-h-[4px]"
-                            style={{ height: `${Math.max(pct, 3)}%` }}
-                          />
+                          <div className="w-full rounded-md bg-[hsl(var(--brand-blue))] transition-all duration-300 min-h-[4px]" style={{ height: `${Math.max(pct, 3)}%` }} />
                           <span className="text-[10px] text-muted-foreground capitalize">{day.label}</span>
                         </div>
                       </TooltipTrigger>
@@ -279,19 +234,33 @@ const MetricasPage = () => {
           )}
         </section>
 
-        {/* ── Section 4: Desempenho por Área ── */}
+        {/* Seção 4: Desempenho por Área */}
         <section>
           <motion.div variants={stagger} custom={9} initial="hidden" animate="show" className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-foreground">Desempenho por Área</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground">Desempenho por Área</h2>
+              {comparativo && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="w-3.5 h-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[220px] text-xs">
+                    {comparativo.grupo === 'interesse'
+                      ? 'A barra cinza mostra a média de alunos com interesses semelhantes aos seus.'
+                      : 'A barra cinza mostra a média de todos os alunos da plataforma. Defina seus interesses no perfil para uma comparação mais precisa.'}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
             <div className="flex bg-muted rounded-lg p-0.5">
               {(["primeira", "ultima"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTentativa(t)}
                   className={`px-3 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 ${
-                    tentativa === t
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                    tentativa === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {t === "primeira" ? "1ª tentativa" : "Última"}
@@ -301,46 +270,3 @@ const MetricasPage = () => {
           </motion.div>
 
           {loading || loadingDesempenho ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-xl" />
-              ))}
-            </div>
-          ) : desempenho.length === 0 ? (
-            <motion.div variants={stagger} custom={10} initial="hidden" animate="show" className="bg-card rounded-xl p-6 text-center text-sm text-muted-foreground shadow-sm">
-              Nenhum dado de desempenho disponível ainda.
-            </motion.div>
-          ) : (
-            <div className="space-y-2">
-              {desempenho.map((area, i) => (
-                <motion.div
-                  key={area.grande_area}
-                  variants={stagger}
-                  custom={10 + i}
-                  initial="hidden"
-                  animate="show"
-                  className="bg-card rounded-xl px-4 py-3 shadow-sm"
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-medium text-foreground truncate mr-2">{area.grande_area}</span>
-                    <span className="text-xs font-bold text-foreground tabular-nums shrink-0">{area.percentual}%</span>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${area.percentual}%` }}
-                      transition={{ duration: 0.6, delay: 0.1 + i * 0.05, ease: [0.16, 1, 0.3, 1] as const }}
-                      className={`h-full rounded-full ${barColor(area.percentual)}`}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
-    </div>
-  );
-};
-
-export default MetricasPage;
