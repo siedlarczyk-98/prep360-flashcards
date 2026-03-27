@@ -18,6 +18,7 @@ const StudyHub = () => {
   const navigate = useNavigate();
   const email = localStorage.getItem("userEmail") || "";
   const tourRef = useRef<Shepherd.Tour | null>(null);
+  const tourRef = useRef<InstanceType<typeof Shepherd.Tour> | null>(null);
 
   const { data: cardsHoje, isLoading: loadingCards } = useQuery({
     queryKey: ["cards-hoje", email],
