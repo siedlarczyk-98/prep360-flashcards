@@ -92,13 +92,15 @@
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
   }
-  html, body, #root {
+  html,
+  body,
+  #root {
     height: 100%;
     overflow: hidden;
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     -webkit-user-select: none;
     user-select: none;
     padding-top: env(safe-area-inset-top);
@@ -107,21 +109,29 @@
 
   /* Replace hover with active states on touch devices */
   @media (hover: none) {
-    button:hover, a:hover, [role="button"]:hover {
+    button:hover,
+    a:hover,
+    [role="button"]:hover {
       all: unset;
     }
   }
-  button:active, a:active, [role="button"]:active {
+  button:active,
+  a:active,
+  [role="button"]:active {
     opacity: 0.75;
     transition: opacity 0.1s ease;
   }
   /* Allow text selection in inputs and textareas */
-  input, textarea, [contenteditable="true"] {
+  input,
+  textarea,
+  [contenteditable="true"] {
     -webkit-user-select: text;
     user-select: text;
   }
-  h1, h2, h3 {
-    font-family: 'Inter', sans-serif;
+  h1,
+  h2,
+  h3 {
+    font-family: "Inter", sans-serif;
     font-weight: 700;
   }
 }
@@ -152,14 +162,114 @@
 }
 
 .bg-circles-pattern::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0.04;
   background-image:
-    repeating-radial-gradient(circle at 30% 40%, transparent 0px, transparent 40px, hsl(213 56% 24% / 0.3) 41px, transparent 42px),
-    repeating-radial-gradient(circle at 70% 60%, transparent 0px, transparent 60px, hsl(214 100% 67% / 0.2) 61px, transparent 62px),
-    repeating-radial-gradient(circle at 50% 80%, transparent 0px, transparent 80px, hsl(18 98% 53% / 0.15) 81px, transparent 82px);
+    repeating-radial-gradient(
+      circle at 30% 40%,
+      transparent 0px,
+      transparent 40px,
+      hsl(213 56% 24% / 0.3) 41px,
+      transparent 42px
+    ),
+    repeating-radial-gradient(
+      circle at 70% 60%,
+      transparent 0px,
+      transparent 60px,
+      hsl(214 100% 67% / 0.2) 61px,
+      transparent 62px
+    ),
+    repeating-radial-gradient(
+      circle at 50% 80%,
+      transparent 0px,
+      transparent 80px,
+      hsl(18 98% 53% / 0.15) 81px,
+      transparent 82px
+    );
   z-index: 0;
+}
+
+/* =============================
+   Shepherd.js - Tour Customizado
+   ============================= */
+.shepherd-element {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px -8px hsl(213 56% 24% / 0.18) !important;
+  border: 1px solid hsl(214 20% 90%) !important;
+  max-width: 320px !important;
+}
+
+.shepherd-content {
+  padding: 20px !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+.shepherd-text {
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: hsl(213 56% 24%) !important;
+}
+
+.shepherd-text strong {
+  color: hsl(214 100% 67%) !important;
+}
+
+.shepherd-footer {
+  padding: 0 20px 16px !important;
+  gap: 8px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.shepherd-button {
+  border-radius: 10px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  transition: opacity 0.15s ease !important;
+}
+
+.shepherd-button:not(.shepherd-button-secondary) {
+  background: hsl(214 100% 67%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.shepherd-button:not(.shepherd-button-secondary):hover {
+  background: hsl(214 100% 57%) !important;
+}
+
+.shepherd-button-secondary {
+  background: transparent !important;
+  color: hsl(215 15% 50%) !important;
+  border: 1px solid hsl(214 20% 88%) !important;
+}
+
+.shepherd-button-secondary:hover {
+  background: hsl(210 20% 96%) !important;
+}
+
+.shepherd-cancel-icon {
+  color: hsl(215 15% 60%) !important;
+  font-size: 18px !important;
+}
+
+.shepherd-cancel-icon:hover {
+  color: hsl(213 56% 24%) !important;
+}
+
+.shepherd-arrow::before {
+  background: white !important;
+  border-color: hsl(214 20% 90%) !important;
+}
+
+.shepherd-modal-overlay-container {
+  opacity: 1 !important;
+}
+
+.shepherd-modal-overlay-container path {
+  fill: hsl(213 56% 24% / 0.4) !important;
 }
