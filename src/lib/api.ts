@@ -426,3 +426,48 @@ export async function marcarOnboardingWeb(): Promise<void> {
     console.error("Erro ao marcar onboarding web");
   }
 }
+
+// --- 8. PERFIL ---
+
+export interface Perfil {
+  nome: string;
+  especialidades: string[];
+  onboarding_web: boolean;
+}
+
+export async function fetchPerfil(): Promise<Perfil | null> {
+  try {
+    const res = await authFetch(`${BASE_URL}/perfil`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchEspecialidades(): Promise<{ id: number; nome: string }[]> {
+  try {
+    const res = await authFetch(`${BASE_URL}/perfil/especialidades`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function salvarEspecialidades(especialidades: string[]): Promise<void> {
+  try {
+    const perfil = await fetchPerfil();
+    await authFetch(`${BASE_URL}/perfil`, {
+      method: "POST",
+      body: JSON.stringify({
+        nome: perfil?.nome || "",
+        ano_ingresso: null,
+        quer_residencia: false,
+        especialidades,
+      }),
+    });
+  } catch {
+    console.error("Erro ao salvar especialidades");
+  }
+}
