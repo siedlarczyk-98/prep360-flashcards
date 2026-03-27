@@ -31,6 +31,12 @@ const AppLayout = () => {
     setSalvando(true);
     await salvarEspecialidades(selecionadas);
     setSalvando(false);
+    localStorage.setItem("interesses_definidos", "true");
+    setShowModal(false);
+  };
+
+  const handlePular = () => {
+    localStorage.setItem("interesses_definidos", "true");
     setShowModal(false);
   };
 
@@ -70,7 +76,7 @@ const AppLayout = () => {
 
             <div className="flex gap-3">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={handlePular}
                 className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 Pular
