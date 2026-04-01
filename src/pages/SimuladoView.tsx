@@ -2,11 +2,80 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchQuestoes, responderQuestao, type Questao, type ResultadoResposta } from "@/lib/api";
+import { fetchQuestoes, responderQuestao, enviarFeedbackProf, type Questao, type ResultadoResposta } from "@/lib/api";
 import SimuladoCompletion, { type RespostaHistorico } from "@/components/SimuladoCompletion";
 import logoIsotipo from "@/assets/logo-isotipo.png";
+
+const FeedbackProfCard = ({ resultadoAPI, questaoId }: { resultadoAPI: ResultadoResposta; questaoId: number }) => {
+  const [feedbackState, setFeedbackState] = useState<boolean | null>(null);
+  const [isSending, setIsSending] = useState(false);
+
+  const handleFeedback = async (util: boolean) => {
+    if (isSending) return;
+    setIsSending(true);
+    try {
+      await enviarFeedbackProf(questaoId, util);
+      setFeedbackState(util);
+    } catch {
+      console.error("Erro ao enviar feedback do professor");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-border bg-muted/50 p-3 mb-4">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <MessageSquareText className="w-3.5 h-3.5 text-primary" />
+        <span className="text-[11px] font-semibold text-foreground">Comentário do Professor</span>
+        {resultadoAPI.acertou ? (
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-700 font-semibold ml-auto">✓ Correto</span>
+        ) : (
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-700 font-semibold ml-auto">✗ Incorreto</span>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{resultadoAPI.feedback_prof}</p>
+
+      <div className="border-t border-border mt-3 pt-2.5 flex items-center gap-2">
+        <span className="text-[11px] text-muted-foreground">Esse comentário foi útil?</span>
+        {feedbackState === null ? (
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(true)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-green-600">
+              <ThumbsUp className="w-3.5 h-3.5" /> Sim
+            </Button>
+            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(false)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-red-600">
+              <ThumbsDown className="w-3.5 h-3.5" /> Não
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Button
+              variant={feedbackState === true ? "default" : "ghost"}
+              size="sm"
+              onClick={() => feedbackState !== true && handleFeedback(true)}
+              disabled={isSending}
+              className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === true ? "bg-green-600 hover:bg-green-700 text-white" : "opacity-40 text-muted-foreground"}`}
+            >
+              <ThumbsUp className="w-3.5 h-3.5" /> Sim
+            </Button>
+            <Button
+              variant={feedbackState === false ? "default" : "ghost"}
+              size="sm"
+              onClick={() => feedbackState !== false && handleFeedback(false)}
+              disabled={isSending}
+              className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === false ? "bg-red-600 hover:bg-red-700 text-white" : "opacity-40 text-muted-foreground"}`}
+            >
+              <ThumbsDown className="w-3.5 h-3.5" /> Não
+            </Button>
+            <span className="text-[10px] text-muted-foreground ml-1">Obrigado pelo feedback!</span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 const SimuladoView = () => {
   const navigate = useNavigate();
@@ -152,18 +221,10 @@ const SimuladoView = () => {
                 ))}
               </div>
               {resultadoAPI && resultadoAPI.feedback_prof && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-border bg-muted/50 p-3 mb-4">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <MessageSquareText className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-[11px] font-semibold text-foreground">Comentário do Professor</span>
-                    {resultadoAPI.acertou ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-700 font-semibold ml-auto">✓ Correto</span>
-                    ) : (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-700 font-semibold ml-auto">✗ Incorreto</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{resultadoAPI.feedback_prof}</p>
-                </motion.div>
+                <FeedbackProfCard
+                  resultadoAPI={resultadoAPI}
+                  questaoId={questaoAtual!.id}
+                />
               )}
             </motion.div>
           )}
