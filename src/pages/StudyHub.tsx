@@ -6,8 +6,8 @@ import { Brain, Target, Loader2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   fetchCardsForToday,
-  fetchQuestoes,
   fetchResumoSemanal,
+  fetchResumoHome,
   fetchOnboardingWeb,
   marcarOnboardingWeb,
 } from "@/lib/api";
