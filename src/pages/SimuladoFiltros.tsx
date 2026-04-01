@@ -2,12 +2,13 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Play, Loader2, BookOpen, Globe, ClipboardList, Search, Info, Target } from "lucide-react";
+import { ArrowLeft, Play, Loader2, BookOpen, Globe, ClipboardList, Search, Info, Target, Star, Rocket, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { fetchAulasComQuestoes, fetchInstituicoes } from "@/lib/api";
+import { Progress } from "@/components/ui/progress";
+import { fetchAulasComQuestoes, fetchInstituicoes, type AulaComQuestoes } from "@/lib/api";
 import logoIsotipo from "@/assets/logo-isotipo.png";
 
 type Modo = "pos-aula" | "grande-area" | "simulado-real";
@@ -21,6 +22,102 @@ const MODOS = [
 const GRANDES_AREAS = ["Clínica Médica", "Cirurgia", "Ginecologia e Obstetrícia", "Pediatria", "Medicina Preventiva"];
 const LIMITES = [10, 20, 40, 60, 80, 120];
 
+/** Mode selection screen shown after picking an aula with essenciais */
+const ModeSelection = ({
+  aula,
+  onBack,
+  onSelect,
+}: {
+  aula: AulaComQuestoes;
+  onBack: () => void;
+  onSelect: (modo: "essenciais" | "todas") => void;
+}) => {
+  const totalEss = aula.total_essenciais ?? 0;
+  const respondidas = aula.essenciais_respondidas ?? 0;
+  const pendentes = aula.essenciais_pendentes ?? (totalEss - respondidas);
+  const progresso = totalEss > 0 ? Math.round((respondidas / totalEss) * 100) : 0;
+  const completo = pendentes === 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.25 }}
+      className="space-y-3"
+    >
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-1">
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Voltar para aulas
+      </button>
+
+      <div className="text-center mb-2">
+        <h2 className="text-sm font-bold text-foreground">{aula.aula_nome}</h2>
+        <p className="text-[10px] text-muted-foreground mt-0.5">{aula.total_questoes} questões disponíveis</p>
+      </div>
+
+      {/* Essenciais card */}
+      <div
+        className={`rounded-xl border-2 p-4 transition-all ${
+          completo
+            ? "border-green-500/40 bg-green-500/5"
+            : "border-accent bg-accent/5 shadow-[0_0_0_3px_hsl(var(--accent)/0.1)]"
+        }`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <Star className="w-4 h-4 text-accent" />
+          <span className="text-xs font-bold text-foreground">Essenciais</span>
+          {!completo && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent font-semibold ml-auto">
+              Recomendado
+            </span>
+          )}
+          {completo && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-700 font-semibold ml-auto flex items-center gap-0.5">
+              <CheckCircle2 className="w-3 h-3" /> Completo!
+            </span>
+          )}
+        </div>
+        <p className="text-[10px] text-muted-foreground mb-1.5">
+          {totalEss} questões selecionadas pelo professor
+        </p>
+        <p className="text-[10px] text-muted-foreground mb-2">
+          {respondidas}/{totalEss} concluídas
+        </p>
+        <Progress value={progresso} className="h-1.5 mb-3" />
+        <Button
+          size="sm"
+          onClick={() => onSelect("essenciais")}
+          className="w-full h-8 text-[11px] font-semibold gap-1.5"
+        >
+          <Star className="w-3 h-3" />
+          Começar →
+        </Button>
+      </div>
+
+      {/* Todas card */}
+      <div className="rounded-xl border-2 border-border bg-card p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Rocket className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs font-bold text-foreground">Todas as questões</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          {aula.total_questoes} questões desta aula
+        </p>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onSelect("todas")}
+          className="w-full h-8 text-[11px] font-semibold gap-1.5"
+        >
+          <Rocket className="w-3 h-3" />
+          Praticar →
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 const SimuladoFiltros = () => {
   const navigate = useNavigate();
   const email = localStorage.getItem("userEmail") || "";
@@ -31,6 +128,7 @@ const SimuladoFiltros = () => {
   const [grandeArea, setGrandeArea] = useState<string>("");
   const [instituicao, setInstituicao] = useState<string>("");
   const [limite, setLimite] = useState<number>(20);
+  const [selectedAula, setSelectedAula] = useState<AulaComQuestoes | null>(null);
 
   const { data: aulasDisponiveis = [], isLoading } = useQuery({
     queryKey: ["aulas-com-questoes", email],
@@ -55,6 +153,29 @@ const SimuladoFiltros = () => {
   }, [email, navigate]);
 
   if (!email) return null;
+
+  const handleAulaClick = (aula: AulaComQuestoes) => {
+    if ((aula.total_essenciais ?? 0) > 0) {
+      setSelectedAula(aula);
+    } else {
+      // No essenciais — go straight to questions (current behavior)
+      const params = new URLSearchParams();
+      params.append("aula_id", aula.aula_id);
+      params.append("limite", "20");
+      navigate(`/simulado?${params.toString()}`);
+    }
+  };
+
+  const handleModeSelect = (modoQuestao: "essenciais" | "todas") => {
+    if (!selectedAula) return;
+    const params = new URLSearchParams();
+    params.append("aula_id", selectedAula.aula_id);
+    if (modoQuestao === "essenciais") {
+      params.append("modo", "essenciais");
+    }
+    params.append("limite", "20");
+    navigate(`/simulado?${params.toString()}`);
+  };
 
   const canStart =
     modo === "pos-aula" && aulaId ||
@@ -106,6 +227,7 @@ const SimuladoFiltros = () => {
                             setGrandeArea("");
                             setInstituicao("");
                             setLimite(20);
+                            setSelectedAula(null);
                           }}
                           className={`relative group rounded-xl border-2 p-4 text-left transition-all duration-200 ${
                             active
@@ -140,7 +262,7 @@ const SimuladoFiltros = () => {
 
             {/* Step 2: Conditional Filters */}
             <AnimatePresence mode="wait">
-              {modo === "pos-aula" && (
+              {modo === "pos-aula" && !selectedAula && (
                 <motion.section key="pos-aula" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                   <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">2. Busque sua Aula</h2>
                   <div className="relative">
@@ -158,28 +280,48 @@ const SimuladoFiltros = () => {
                       <span className="text-[11px]">Carregando aulas...</span>
                     </div>
                   ) : (
-                    <div className="mt-2 max-h-40 overflow-y-auto space-y-1 pr-1">
+                    <div className="mt-2 max-h-52 overflow-y-auto space-y-1.5 pr-1">
                       {aulasFiltradas.length > 0 ? (
-                        aulasFiltradas.map((d) => (
-                          <button
-                            key={d.aula_id}
-                            onClick={() => setAulaId(d.aula_id)}
-                            className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium border-2 transition-all ${
-                              aulaId === d.aula_id
-                                ? "border-accent bg-accent/10 text-accent"
-                                : "border-border bg-card text-foreground hover:border-accent/30"
-                            }`}
-                          >
-                            <span className="font-semibold">{d.aula_nome}</span>
-                            <span className="text-muted-foreground ml-1.5 text-[10px]">({d.total_questoes} questões)</span>
-                          </button>
-                        ))
+                        aulasFiltradas.map((d) => {
+                          const hasEss = (d.total_essenciais ?? 0) > 0;
+                          const essResp = d.essenciais_respondidas ?? 0;
+                          const essTotal = d.total_essenciais ?? 0;
+                          const essProg = essTotal > 0 ? Math.round((essResp / essTotal) * 100) : 0;
+                          return (
+                            <button
+                              key={d.aula_id}
+                              onClick={() => handleAulaClick(d)}
+                              className="w-full text-left px-3 py-2.5 rounded-lg text-xs border-2 border-border bg-card text-foreground hover:border-accent/30 transition-all"
+                            >
+                              <span className="font-semibold block">{d.aula_nome}</span>
+                              {hasEss ? (
+                                <div className="mt-1.5">
+                                  <span className="text-[10px] text-muted-foreground">
+                                    ⭐ {essResp}/{essTotal} essenciais {"  "}·{"  "} {d.total_questoes} questões no total
+                                  </span>
+                                  <Progress value={essProg} className="h-1 mt-1" />
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-[10px]">{d.total_questoes} questões</span>
+                              )}
+                            </button>
+                          );
+                        })
                       ) : (
                         <p className="text-[11px] text-muted-foreground py-2">Nenhuma aula encontrada.</p>
                       )}
                     </div>
                   )}
                 </motion.section>
+              )}
+
+              {modo === "pos-aula" && selectedAula && (
+                <ModeSelection
+                  key="mode-selection"
+                  aula={selectedAula}
+                  onBack={() => setSelectedAula(null)}
+                  onSelect={handleModeSelect}
+                />
               )}
 
               {modo === "grande-area" && (
@@ -252,20 +394,22 @@ const SimuladoFiltros = () => {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="shrink-0 px-4 py-2.5 border-t border-border bg-background">
-          <div className="max-w-2xl mx-auto">
-            <Button
-              size="lg"
-              onClick={handleIniciar}
-              disabled={!canStart}
-              className="w-full h-10 text-xs font-semibold gap-2 disabled:opacity-40"
-            >
-              <Play className="w-3.5 h-3.5" />
-              Iniciar Simulado
-            </Button>
-          </div>
-        </footer>
+        {/* Footer — hide when mode selection is showing */}
+        {!(modo === "pos-aula" && selectedAula) && (
+          <footer className="shrink-0 px-4 py-2.5 border-t border-border bg-background">
+            <div className="max-w-2xl mx-auto">
+              <Button
+                size="lg"
+                onClick={handleIniciar}
+                disabled={!canStart}
+                className="w-full h-10 text-xs font-semibold gap-2 disabled:opacity-40"
+              >
+                <Play className="w-3.5 h-3.5" />
+                Iniciar Simulado
+              </Button>
+            </div>
+          </footer>
+        )}
       </div>
     </TooltipProvider>
   );
