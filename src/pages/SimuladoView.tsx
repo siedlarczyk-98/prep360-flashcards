@@ -173,12 +173,12 @@ const SimuladoView = () => {
       <footer className="shrink-0 px-4 py-2 border-t border-border bg-background">
         <div className="max-w-4xl mx-auto flex justify-end">
           {!resultadoAPI ? (
-            <Button size="sm" disabled={!escolhaUsuario || isSubmitting} onClick={handleConfirm} className="min-w-[160px] gap-1.5 h-9 text-xs">
+            <Button size="sm" disabled={!escolhaUsuario || isSubmitting} onClick={handleConfirm} className="min-w-[10rem] gap-1.5 h-9 text-xs">
               {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               Confirmar Resposta
             </Button>
           ) : (
-            <Button size="sm" onClick={handleNext} className="min-w-[160px] h-9 text-xs">
+            <Button size="sm" onClick={handleNext} className="min-w-[10rem] h-9 text-xs">
               {isLastQuestion ? "Ver Resultado" : "Próxima Questão"}
             </Button>
           )}

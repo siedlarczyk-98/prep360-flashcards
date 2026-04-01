@@ -191,7 +191,7 @@ const Agenda = () => {
             </div>
           ) : (
             <div className="flex flex-col lg:flex-row gap-3">
-              <div className="lg:w-[320px] shrink-0">
+              <div className="lg:w-1/3 lg:max-w-xs shrink-0">
                 <AgendaCalendar
                   currentMonth={currentMonth}
                   onMonthChange={setCurrentMonth}
