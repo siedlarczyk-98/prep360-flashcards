@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText, ThumbsUp, ThumbsDown } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText, ThumbsUp, ThumbsDown, Star, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchQuestoes, responderQuestao, enviarFeedbackProf, type Questao, type ResultadoResposta } from "@/lib/api";
 import SimuladoCompletion, { type RespostaHistorico } from "@/components/SimuladoCompletion";
@@ -37,38 +37,17 @@ const FeedbackProfCard = ({ resultadoAPI, questaoId }: { resultadoAPI: Resultado
         )}
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{resultadoAPI.feedback_prof}</p>
-
       <div className="border-t border-border mt-3 pt-2.5 flex items-center gap-2">
         <span className="text-[11px] text-muted-foreground">Esse comentário foi útil?</span>
         {feedbackState === null ? (
           <div className="flex items-center gap-1.5 ml-auto">
-            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(true)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-green-600">
-              <ThumbsUp className="w-3.5 h-3.5" /> Sim
-            </Button>
-            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(false)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-red-600">
-              <ThumbsDown className="w-3.5 h-3.5" /> Não
-            </Button>
+            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(true)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-green-600"><ThumbsUp className="w-3.5 h-3.5" /> Sim</Button>
+            <Button variant="ghost" size="sm" disabled={isSending} onClick={() => handleFeedback(false)} className="h-7 px-2.5 text-[11px] gap-1 text-muted-foreground hover:text-red-600"><ThumbsDown className="w-3.5 h-3.5" /> Não</Button>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 ml-auto">
-            <Button
-              variant={feedbackState === true ? "default" : "ghost"}
-              size="sm"
-              onClick={() => feedbackState !== true && handleFeedback(true)}
-              disabled={isSending}
-              className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === true ? "bg-green-600 hover:bg-green-700 text-white" : "opacity-40 text-muted-foreground"}`}
-            >
-              <ThumbsUp className="w-3.5 h-3.5" /> Sim
-            </Button>
-            <Button
-              variant={feedbackState === false ? "default" : "ghost"}
-              size="sm"
-              onClick={() => feedbackState !== false && handleFeedback(false)}
-              disabled={isSending}
-              className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === false ? "bg-red-600 hover:bg-red-700 text-white" : "opacity-40 text-muted-foreground"}`}
-            >
-              <ThumbsDown className="w-3.5 h-3.5" /> Não
-            </Button>
+            <Button variant={feedbackState === true ? "default" : "ghost"} size="sm" onClick={() => feedbackState !== true && handleFeedback(true)} disabled={isSending} className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === true ? "bg-green-600 hover:bg-green-700 text-white" : "opacity-40 text-muted-foreground"}`}><ThumbsUp className="w-3.5 h-3.5" /> Sim</Button>
+            <Button variant={feedbackState === false ? "default" : "ghost"} size="sm" onClick={() => feedbackState !== false && handleFeedback(false)} disabled={isSending} className={`h-7 px-2.5 text-[11px] gap-1 ${feedbackState === false ? "bg-red-600 hover:bg-red-700 text-white" : "opacity-40 text-muted-foreground"}`}><ThumbsDown className="w-3.5 h-3.5" /> Não</Button>
             <span className="text-[10px] text-muted-foreground ml-1">Obrigado pelo feedback!</span>
           </div>
         )}
@@ -82,11 +61,15 @@ const SimuladoView = () => {
   const [searchParams] = useSearchParams();
   const email = localStorage.getItem("userEmail") || "";
 
-  const modo = searchParams.get("modo") || undefined;
+  const modoParam = searchParams.get("modo") || undefined;
   const aulaId = searchParams.get("aula_id") || undefined;
   const grandeArea = searchParams.get("grande_area") || undefined;
   const instituicao = searchParams.get("instituicao") || undefined;
-  const limite = searchParams.get("limite") ? Number(searchParams.get("limite")) : 20;
+  const limite = searchParams.get("limite") ? Number(searchParams.get("limite")) : undefined;
+
+  // Determine initial tab from URL param
+  const initialTab = modoParam === "essenciais" ? "essenciais" : "todas";
+  const [activeTab, setActiveTab] = useState<"essenciais" | "todas">(initialTab);
 
   const [indiceAtual, setIndiceAtual] = useState(0);
   const [escolhaUsuario, setEscolhaUsuario] = useState<string | null>(null);
@@ -95,16 +78,46 @@ const SimuladoView = () => {
   const [historico, setHistorico] = useState<RespostaHistorico[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  const { data: questoes, isLoading } = useQuery({
-    queryKey: ["questoes-simulado", email, modo, aulaId, grandeArea, limite],
-    queryFn: () =>
-      fetchQuestoes({ apenas_liberadas: true, modo, aula_id: aulaId, grande_area: grandeArea, instituicao, limite }),
+  // Fetch essenciais
+  const { data: questoesEssenciais, isLoading: loadingEss } = useQuery({
+    queryKey: ["questoes-simulado-ess", email, aulaId],
+    queryFn: () => fetchQuestoes({ aula_id: aulaId, modo: "essenciais" }),
+    enabled: !!email && !!aulaId,
+  });
+
+  // Fetch todas
+  const { data: questoesTodas, isLoading: loadingTodas } = useQuery({
+    queryKey: ["questoes-simulado-todas", email, modoParam, aulaId, grandeArea, instituicao, limite],
+    queryFn: () => fetchQuestoes({ aula_id: aulaId, grande_area: grandeArea, instituicao, limite, modo: modoParam === "essenciais" ? "todas" : modoParam }),
     enabled: !!email,
   });
+
+  const hasEssenciais = (questoesEssenciais?.length ?? 0) > 0;
+  const showTabs = !!aulaId && hasEssenciais;
+
+  // Active question list based on tab
+  const questoes = showTabs && activeTab === "essenciais" ? questoesEssenciais : questoesTodas;
+  const isLoading = showTabs && activeTab === "essenciais" ? loadingEss : loadingTodas;
+
+  // Reset index when switching tabs
+  const handleTabChange = (tab: "essenciais" | "todas") => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    setIndiceAtual(0);
+    setEscolhaUsuario(null);
+    setResultadoAPI(null);
+  };
 
   useEffect(() => {
     if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
+
+  // If essenciais were requested but none exist, fall back to todas
+  useEffect(() => {
+    if (!loadingEss && activeTab === "essenciais" && !hasEssenciais) {
+      setActiveTab("todas");
+    }
+  }, [loadingEss, hasEssenciais, activeTab]);
 
   if (!email) return null;
 
@@ -188,22 +201,56 @@ const SimuladoView = () => {
         )}
       </header>
 
+      {/* Tabs - only show when aula has essenciais */}
+      {showTabs && (
+        <div className="flex items-center border-b border-border px-4 shrink-0">
+          <button
+            onClick={() => handleTabChange("essenciais")}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${activeTab === "essenciais" ? "border-orange-500 text-orange-600" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            <Star className="w-3.5 h-3.5" />
+            Essenciais ({questoesEssenciais?.length ?? 0})
+          </button>
+          <button
+            onClick={() => handleTabChange("todas")}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold border-b-2 transition-colors ${activeTab === "todas" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            <Rocket className="w-3.5 h-3.5" />
+            Todas ({questoesTodas?.length ?? 0})
+          </button>
+        </div>
+      )}
+
       <main className="flex-1 overflow-y-auto px-4 py-3">
         <AnimatePresence mode="wait">
           {questaoAtual && (
             <motion.div
-              key={questaoAtual.id}
+              key={`${activeTab}-${questaoAtual.id}`}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
               className="max-w-4xl mx-auto"
             >
-              {(questaoAtual.instituicao || questaoAtual.ano) && (
-                <p className="text-[10px] text-muted-foreground mb-1.5">
-                  {[questaoAtual.instituicao, questaoAtual.ano].filter(Boolean).join(" · ")}
-                </p>
-              )}
+              {/* Badges row */}
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                {(questaoAtual.instituicao || questaoAtual.ano) && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {[questaoAtual.instituicao, questaoAtual.ano].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                {questaoAtual.essencial && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-600 font-semibold flex items-center gap-0.5">
+                    <Star className="w-2.5 h-2.5" /> Essencial
+                  </span>
+                )}
+                {questaoAtual.respondida && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                    Já respondida
+                  </span>
+                )}
+              </div>
+
               <div className="mb-4">
                 <p className="text-xs leading-relaxed text-foreground whitespace-pre-line">{questaoAtual.enunciado}</p>
                 {questaoAtual.img_url && (
@@ -221,10 +268,7 @@ const SimuladoView = () => {
                 ))}
               </div>
               {resultadoAPI && resultadoAPI.feedback_prof && (
-                <FeedbackProfCard
-                  resultadoAPI={resultadoAPI}
-                  questaoId={questaoAtual!.id}
-                />
+                <FeedbackProfCard resultadoAPI={resultadoAPI} questaoId={questaoAtual.id} />
               )}
             </motion.div>
           )}
