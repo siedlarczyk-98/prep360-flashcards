@@ -281,6 +281,16 @@ export async function responderQuestao(questao_id: number, escolha: string): Pro
   return res.json();
 }
 
+/** Envia feedback sobre o comentário do professor */
+export async function enviarFeedbackProf(questao_id: number, util: boolean): Promise<{ success: boolean }> {
+  const res = await authFetch(`${BASE_URL}/questoes/feedback-prof`, {
+    method: "POST",
+    body: JSON.stringify({ questao_id, util }),
+  });
+  if (!res.ok) throw new Error("Erro ao enviar feedback");
+  return res.json();
+}
+
 /** Estatísticas acumuladas por aula */
 export interface EstatisticasAula {
   total_pessoal: number;
