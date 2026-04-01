@@ -2,7 +2,20 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Play, Loader2, BookOpen, Globe, ClipboardList, Search, Info, Target, Star, Rocket, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Play,
+  Loader2,
+  BookOpen,
+  Globe,
+  ClipboardList,
+  Search,
+  Info,
+  Target,
+  Star,
+  Rocket,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,15 +27,29 @@ import logoIsotipo from "@/assets/logo-isotipo.png";
 type Modo = "pos-aula" | "grande-area" | "simulado-real";
 
 const MODOS = [
-  { value: "pos-aula" as Modo, label: "Conteúdo Pós-Aula", icon: BookOpen, tooltip: "Foque no conteúdo que você acabou de ver." },
-  { value: "grande-area" as Modo, label: "Por Grande Área", icon: Globe, tooltip: "20 questões aleatórias sobre uma das 5 grandes áreas" },
-  { value: "simulado-real" as Modo, label: "Modo Simulado", icon: ClipboardList, tooltip: "Treine como no dia da prova. Escolha o nº de questões" },
+  {
+    value: "pos-aula" as Modo,
+    label: "Conteúdo Pós-Aula",
+    icon: BookOpen,
+    tooltip: "Foque no conteúdo que você acabou de ver.",
+  },
+  {
+    value: "grande-area" as Modo,
+    label: "Por Grande Área",
+    icon: Globe,
+    tooltip: "20 questões aleatórias sobre uma das 5 grandes áreas",
+  },
+  {
+    value: "simulado-real" as Modo,
+    label: "Modo Simulado",
+    icon: ClipboardList,
+    tooltip: "Treine como no dia da prova. Escolha o nº de questões",
+  },
 ];
 
 const GRANDES_AREAS = ["Clínica Médica", "Cirurgia", "Ginecologia e Obstetrícia", "Pediatria", "Medicina Preventiva"];
 const LIMITES = [10, 20, 40, 60, 80, 120];
 
-/** Mode selection screen shown after picking an aula with essenciais */
 const ModeSelection = ({
   aula,
   onBack,
@@ -34,7 +61,7 @@ const ModeSelection = ({
 }) => {
   const totalEss = aula.total_essenciais ?? 0;
   const respondidas = aula.essenciais_respondidas ?? 0;
-  const pendentes = aula.essenciais_pendentes ?? (totalEss - respondidas);
+  const pendentes = aula.essenciais_pendentes ?? totalEss - respondidas;
   const progresso = totalEss > 0 ? Math.round((respondidas / totalEss) * 100) : 0;
   const completo = pendentes === 0;
 
@@ -46,7 +73,10 @@ const ModeSelection = ({
       transition={{ duration: 0.25 }}
       className="space-y-3"
     >
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-1">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-1"
+      >
         <ArrowLeft className="w-3.5 h-3.5" />
         Voltar para aulas
       </button>
@@ -56,63 +86,70 @@ const ModeSelection = ({
         <p className="text-[10px] text-muted-foreground mt-0.5">{aula.total_questoes} questões disponíveis</p>
       </div>
 
-      {/* Essenciais card */}
+      {/* Essenciais */}
       <div
         className={`rounded-xl border-2 p-4 transition-all ${
           completo
-            ? "border-green-500/40 bg-green-500/5"
+            ? "border-[#1C3553]/30 bg-[#1C3553]/5"
             : "border-accent bg-accent/5 shadow-[0_0_0_3px_hsl(var(--accent)/0.1)]"
         }`}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Star className="w-4 h-4 text-accent" />
-          <span className="text-xs font-bold text-foreground">Essenciais</span>
-          {!completo && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent font-semibold ml-auto">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${completo ? "bg-[#1C3553]" : "bg-accent"}`}
+            >
+              <Star className="w-3 h-3 text-white" fill="white" />
+            </div>
+            <span className="text-xs font-bold text-foreground">Essenciais</span>
+          </div>
+          {completo ? (
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#1C3553]/10 text-[#1C3553] font-semibold flex items-center gap-0.5">
+              <CheckCircle2 className="w-3 h-3" /> Completo
+            </span>
+          ) : (
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">
               Recomendado
             </span>
           )}
-          {completo && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-700 font-semibold ml-auto flex items-center gap-0.5">
-              <CheckCircle2 className="w-3 h-3" /> Completo!
-            </span>
-          )}
         </div>
-        <p className="text-[10px] text-muted-foreground mb-1.5">
-          {totalEss} questões selecionadas pelo professor
-        </p>
-        <p className="text-[10px] text-muted-foreground mb-2">
+        <p className="text-[10px] text-muted-foreground">{totalEss} questões selecionadas pelo professor</p>
+        <p className={`text-[10px] font-semibold mt-1.5 ${completo ? "text-[#1C3553]" : "text-accent"}`}>
           {respondidas}/{totalEss} concluídas
         </p>
-        <Progress value={progresso} className="h-1.5 mb-3" />
-        <Button
-          size="sm"
+        <div className="h-1.5 bg-muted rounded-full mt-1.5 mb-3 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${completo ? "bg-[#1C3553]" : "bg-accent"}`}
+            style={{ width: `${Math.max(progresso, 3)}%` }}
+          />
+        </div>
+        <button
           onClick={() => onSelect("essenciais")}
-          className="w-full h-8 text-[11px] font-semibold gap-1.5"
+          className={`w-full py-2 rounded-lg text-[11px] font-semibold text-white transition-colors ${
+            completo ? "bg-[#1C3553] hover:bg-[#1C3553]/90" : "bg-accent hover:bg-accent/90"
+          }`}
         >
-          <Star className="w-3 h-3" />
-          Começar →
-        </Button>
+          {completo ? "Revisar →" : "Começar →"}
+        </button>
       </div>
 
-      {/* Todas card */}
-      <div className="rounded-xl border-2 border-border bg-card p-4">
+      {/* Todas */}
+      <div className="rounded-xl border-2 border-[#1C3553]/15 bg-card p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Rocket className="w-4 h-4 text-muted-foreground" />
+          <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#1C3553]">
+            <BookOpen className="w-3 h-3 text-white" />
+          </div>
           <span className="text-xs font-bold text-foreground">Todas as questões</span>
         </div>
         <p className="text-[10px] text-muted-foreground mb-3">
-          {aula.total_questoes} questões desta aula
+          Pratique com todas as {aula.total_questoes} questões desta aula
         </p>
-        <Button
-          size="sm"
-          variant="outline"
+        <button
           onClick={() => onSelect("todas")}
-          className="w-full h-8 text-[11px] font-semibold gap-1.5"
+          className="w-full py-2 rounded-lg text-[11px] font-semibold text-white bg-[#1C3553] hover:bg-[#1C3553]/90 transition-colors"
         >
-          <Rocket className="w-3 h-3" />
           Praticar →
-        </Button>
+        </button>
       </div>
     </motion.div>
   );
@@ -133,13 +170,13 @@ const SimuladoFiltros = () => {
   const { data: aulasDisponiveis = [], isLoading } = useQuery({
     queryKey: ["aulas-com-questoes", email],
     queryFn: () => fetchAulasComQuestoes(),
-    enabled: !!email && modo === "pos-aula"
+    enabled: !!email && modo === "pos-aula",
   });
 
   const { data: instituicoes = [], isLoading: isLoadingInst } = useQuery({
     queryKey: ["instituicoes", email],
     queryFn: fetchInstituicoes,
-    enabled: modo === "simulado-real"
+    enabled: modo === "simulado-real",
   });
 
   const aulasFiltradas = useMemo(() => {
@@ -178,9 +215,9 @@ const SimuladoFiltros = () => {
   };
 
   const canStart =
-    modo === "pos-aula" && aulaId ||
-    modo === "grande-area" && grandeArea ||
-    modo === "simulado-real" && instituicao;
+    (modo === "pos-aula" && aulaId) ||
+    (modo === "grande-area" && grandeArea) ||
+    (modo === "simulado-real" && instituicao);
 
   const handleIniciar = () => {
     if (!canStart) return;
@@ -203,12 +240,15 @@ const SimuladoFiltros = () => {
   return (
     <TooltipProvider delayDuration={200}>
       <div className="h-full w-full flex flex-col bg-background bg-circles-pattern overflow-hidden">
-
         {/* Content */}
         <main className="flex-1 overflow-y-auto px-4 py-4">
           <div className="max-w-2xl mx-auto space-y-5">
             {/* Step 1: Modo */}
-            <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
               <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
                 1. Escolha o Modo de Estudo
               </h2>
@@ -236,9 +276,13 @@ const SimuladoFiltros = () => {
                           }`}
                         >
                           <div className="flex items-start justify-between">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                              active ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground group-hover:bg-accent/10 group-hover:text-accent"
-                            }`}>
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                                active
+                                  ? "bg-accent text-accent-foreground"
+                                  : "bg-muted text-muted-foreground group-hover:bg-accent/10 group-hover:text-accent"
+                              }`}
+                            >
                               <Icon className="w-4 h-4" />
                             </div>
                             <Info className="w-3 h-3 text-muted-foreground/50" />
@@ -263,8 +307,16 @@ const SimuladoFiltros = () => {
             {/* Step 2: Conditional Filters */}
             <AnimatePresence mode="wait">
               {modo === "pos-aula" && !selectedAula && (
-                <motion.section key="pos-aula" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-                  <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">2. Busque sua Aula</h2>
+                <motion.section
+                  key="pos-aula"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                    2. Busque sua Aula
+                  </h2>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -297,7 +349,8 @@ const SimuladoFiltros = () => {
                               {hasEss ? (
                                 <div className="mt-1.5">
                                   <span className="text-[10px] text-muted-foreground">
-                                    ⭐ {essResp}/{essTotal} essenciais {"  "}·{"  "} {d.total_questoes} questões no total
+                                    ⭐ {essResp}/{essTotal} essenciais {"  "}·{"  "} {d.total_questoes} questões no
+                                    total
                                   </span>
                                   <Progress value={essProg} className="h-1 mt-1" />
                                 </div>
@@ -325,8 +378,16 @@ const SimuladoFiltros = () => {
               )}
 
               {modo === "grande-area" && (
-                <motion.section key="grande-area" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-                  <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">2. Selecione a Grande Área</h2>
+                <motion.section
+                  key="grande-area"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                    2. Selecione a Grande Área
+                  </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {GRANDES_AREAS.map((area) => (
                       <button
@@ -343,15 +404,25 @@ const SimuladoFiltros = () => {
                     ))}
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2">
-                    Serão selecionadas <strong className="text-foreground">20 questões</strong> aleatórias da área escolhida.
+                    Serão selecionadas <strong className="text-foreground">20 questões</strong> aleatórias da área
+                    escolhida.
                   </p>
                 </motion.section>
               )}
 
               {modo === "simulado-real" && (
-                <motion.section key="simulado-real" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-4">
+                <motion.section
+                  key="simulado-real"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-4"
+                >
                   <div>
-                    <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">2. Selecione a Instituição</h2>
+                    <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                      2. Selecione a Instituição
+                    </h2>
                     {isLoadingInst ? (
                       <div className="flex items-center gap-2 text-muted-foreground py-3">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -364,14 +435,18 @@ const SimuladoFiltros = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {instituicoes.map((inst) => (
-                            <SelectItem key={inst} value={inst} className="text-xs font-medium">{inst}</SelectItem>
+                            <SelectItem key={inst} value={inst} className="text-xs font-medium">
+                              {inst}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     )}
                   </div>
                   <div>
-                    <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">3. Quantidade de Questões</h2>
+                    <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                      3. Quantidade de Questões
+                    </h2>
                     <div className="flex flex-wrap gap-2">
                       {LIMITES.map((l) => (
                         <button
