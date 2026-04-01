@@ -101,9 +101,6 @@ export interface Questao {
   ano?: number;
   dificuldade?: string;
   tags?: string;
-  essencial?: boolean;
-  respondida?: boolean;
-  acertou?: boolean | null;
 }
 
 export interface ResultadoResposta {
@@ -213,33 +210,7 @@ export async function fetchEstudoManual(aulaId?: string): Promise<FlashCard[]> {
 export interface AulaComQuestoes {
   aula_id: string;
   aula_nome: string;
-  grande_area?: string;
   total_questoes: number;
-  total_essenciais: number;
-  essenciais_respondidas: number;
-  essenciais_pendentes: number;
-}
-
-export interface ResumoHome {
-  aula_id: number;
-  aula_nome: string;
-  essenciais_total: number;
-  essenciais_pendentes: number;
-  turbinado_disponiveis: number;
-  total_questoes: number;
-}
-
-/** Resumo para o card da home (essenciais vs turbinado) */
-export async function fetchResumoHome(aulaId?: string): Promise<ResumoHome | null> {
-  try {
-    let url = `${BASE_URL}/questoes/resumo-home`;
-    if (aulaId) url += `?aula_id=${encodeURIComponent(aulaId)}`;
-    const res = await authFetch(url);
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
 }
 
 /** Busca aulas que possuem questões disponíveis para o aluno */
