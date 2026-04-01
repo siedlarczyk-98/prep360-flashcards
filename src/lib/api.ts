@@ -210,7 +210,11 @@ export async function fetchEstudoManual(aulaId?: string): Promise<FlashCard[]> {
 export interface AulaComQuestoes {
   aula_id: string;
   aula_nome: string;
+  grande_area?: string;
   total_questoes: number;
+  total_essenciais?: number;
+  essenciais_respondidas?: number;
+  essenciais_pendentes?: number;
 }
 
 /** Busca aulas que possuem questões disponíveis para o aluno */
@@ -218,6 +222,27 @@ export async function fetchAulasComQuestoes(): Promise<AulaComQuestoes[]> {
   const res = await authFetch(`${BASE_URL}/questoes/aulas-disponiveis`);
   if (!res.ok) return [];
   return res.json();
+}
+
+// --- 2.6 RESUMO HOME (QUESTÕES) ---
+
+export interface ResumoHome {
+  aula_id: string;
+  aula_nome: string;
+  essenciais_total: number;
+  essenciais_pendentes: number;
+  turbinado_disponiveis: number;
+  total_questoes: number;
+}
+
+export async function fetchResumoHome(): Promise<ResumoHome | null> {
+  try {
+    const res = await authFetch(`${BASE_URL}/questoes/resumo-home`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 /** Lista de instituições disponíveis para o modo simulado */
