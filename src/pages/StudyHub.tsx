@@ -25,9 +25,9 @@ const StudyHub = () => {
     enabled: !!email,
   });
 
-  const { data: questoes, isLoading: loadingQuestoes } = useQuery({
-    queryKey: ["questoes", email],
-    queryFn: () => fetchQuestoes({ apenas_liberadas: true }),
+  const { data: resumoHome, isLoading: loadingQuestoes } = useQuery({
+    queryKey: ["resumo-home", email],
+    queryFn: fetchResumoHome,
     enabled: !!email,
   });
 
