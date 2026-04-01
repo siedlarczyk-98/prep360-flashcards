@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, MessageSquareText, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchQuestoes, responderQuestao, type Questao, type ResultadoResposta } from "@/lib/api";
+import { fetchQuestoes, responderQuestao, enviarFeedbackProf, type Questao, type ResultadoResposta } from "@/lib/api";
 import SimuladoCompletion, { type RespostaHistorico } from "@/components/SimuladoCompletion";
 import logoIsotipo from "@/assets/logo-isotipo.png";
 
