@@ -16,7 +16,7 @@
     --primary: 213 56% 24%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 100% 67%;
+    --secondary: 213 40% 35%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 20% 96%;
@@ -49,10 +49,10 @@
     --navy-dark: 213 56% 14%;
     --brand-orange: 18 98% 53%;
     --brand-orange-light: 18 90% 60%;
-    --brand-blue: 214 100% 67%;
-    --brand-blue-light: 214 90% 78%;
-    --sky: 214 100% 67%;
-    --sky-light: 214 90% 78%;
+    --brand-blue: 213 40% 35%;
+    --brand-blue-light: 213 35% 50%;
+    --sky: 213 40% 35%;
+    --sky-light: 213 35% 50%;
     --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -71,7 +71,7 @@
     --card-foreground: 210 20% 96%;
     --popover: 215 30% 12%;
     --popover-foreground: 210 20% 96%;
-    --primary: 214 100% 67%;
+    --primary: 213 40% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 215 25% 18%;
     --secondary-foreground: 210 20% 96%;
@@ -155,7 +155,7 @@
   background-image:
     radial-gradient(circle at 20% 30%, hsl(213 56% 24% / 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, hsl(18 98% 53% / 0.02) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, hsl(214 100% 67% / 0.015) 0%, transparent 60%);
+    radial-gradient(circle at 50% 50%, hsl(213 40% 35% / 0.015) 0%, transparent 60%);
   background-size: 100% 100%;
 }
 
@@ -181,7 +181,7 @@
       circle at 70% 60%,
       transparent 0px,
       transparent 60px,
-      hsl(214 100% 67% / 0.2) 61px,
+      hsl(213 40% 35% / 0.2) 61px,
       transparent 62px
     ),
     repeating-radial-gradient(
@@ -216,7 +216,7 @@
 }
 
 .shepherd-text strong {
-  color: hsl(214 100% 67%) !important;
+  color: hsl(18 98% 53%) !important;
 }
 
 .shepherd-footer {
@@ -235,13 +235,13 @@
 }
 
 .shepherd-button:not(.shepherd-button-secondary) {
-  background: hsl(214 100% 67%) !important;
+  background: hsl(213 56% 24%) !important;
   color: white !important;
   border: none !important;
 }
 
 .shepherd-button:not(.shepherd-button-secondary):hover {
-  background: hsl(214 100% 57%) !important;
+  background: hsl(213 56% 18%) !important;
 }
 
 .shepherd-button-secondary {
