@@ -6,6 +6,7 @@ import { Brain, Target, Loader2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   fetchCardsForToday,
+  fetchNewCards,
   fetchResumoSemanal,
   fetchResumoHome,
   fetchOnboardingWeb,
