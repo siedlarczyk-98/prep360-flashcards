@@ -71,10 +71,7 @@ const StudyHub = () => {
       buttons: [
         {
           text: "Pular",
-          action: () => {
-            tour.cancel();
-            marcarOnboardingWeb();
-          },
+          action: () => {},
           secondary: true,
         },
         { text: "Começar →", action: tour.next },
