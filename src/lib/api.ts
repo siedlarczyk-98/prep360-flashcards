@@ -522,18 +522,13 @@ export async function fetchEspecialidades(): Promise<{ id: number; nome: string 
 }
 
 export async function salvarEspecialidades(especialidades: string[]): Promise<void> {
-  try {
-    const perfil = await fetchPerfil();
-    await authFetch(`${BASE_URL}/perfil`, {
-      method: "POST",
-      body: JSON.stringify({
-        nome: perfil?.nome || "",
-        ano_ingresso: null,
-        quer_residencia: false,
-        especialidades,
-      }),
-    });
-  } catch {
-    console.error("Erro ao salvar especialidades");
-  }
+  await authFetch(`${BASE_URL}/perfil`, {
+    method: "POST",
+    body: JSON.stringify({
+      nome: "",
+      ano_ingresso: null,
+      quer_residencia: false,
+      especialidades,
+    }),
+  });
 }
