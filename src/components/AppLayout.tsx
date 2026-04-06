@@ -12,8 +12,7 @@ const AppLayout = () => {
   useEffect(() => {
     const verificar = async () => {
       const perfil = await fetchPerfil();
-      if (!perfil) return;
-      const temInteresses = perfil.especialidades && perfil.especialidades.length > 0;
+      const temInteresses = perfil?.especialidades && perfil.especialidades.length > 0;
       if (!temInteresses) {
         const lista = await fetchEspecialidades();
         setEspecialidades(lista);
