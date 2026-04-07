@@ -2,7 +2,7 @@
  * CONFIGURAÇÃO BASE
  * Unificada para o novo padrão do backend (/api)
  */
-const BASE_URL = "https://prep360.up.railway.app/api";
+const BASE_URL = "http://localhost:3002/api";
 
 /**
  * Wrapper autenticado para fetch.
@@ -33,11 +33,11 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
 }
 
 /** Login: identifica usuário e retorna JWT */
-export async function identificarUsuario(email: string): Promise<{ token: string }> {
+export async function identificarUsuario(email: string, userId?: number): Promise<{ token: string }> {
   const res = await fetch(`${BASE_URL}/auth/identificar-usuario`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, userId }),
   });
   if (!res.ok) throw new Error("Erro ao identificar usuário");
   return res.json();

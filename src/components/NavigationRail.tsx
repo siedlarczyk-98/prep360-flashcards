@@ -21,6 +21,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/como-funciona": "Como Funciona",
 };
 
+const userId = localStorage.getItem("userId");
+
 const WHATSAPP_URL = "https://api.whatsapp.com/send/?phone=551126266561&text&type=phone_number&app_absent=0";
 
 const NavigationRail = () => {
@@ -109,13 +111,15 @@ const NavigationRail = () => {
 
             {/* Footer: Logout */}
             <div className="mx-5 border-t border-primary-foreground/10" />
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-primary-foreground/50 hover:text-primary-foreground hover:bg-[hsl(var(--sidebar-accent))] transition-all"
-            >
-              <LogOut className="w-4.5 h-4.5" />
-              <span>Trocar e-mail / Sair</span>
-            </button>
+            {!userId && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-primary-foreground/50 hover:text-primary-foreground hover:bg-[hsl(var(--sidebar-accent))] transition-all"
+              >
+                <LogOut className="w-4.5 h-4.5" />
+                <span>Trocar e-mail / Sair</span>
+              </button>
+            )}
           </nav>
         </SheetContent>
       </Sheet>
