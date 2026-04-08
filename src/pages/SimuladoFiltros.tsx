@@ -496,8 +496,7 @@ const SimuladoFiltros = () => {
             </div>
           </footer>
         )}
-      </div>
-    </TooltipProvider>
+    </div>
   );
 };
 
