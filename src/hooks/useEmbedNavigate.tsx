@@ -4,6 +4,7 @@ import { useNavigate, useLocation, type NavigateOptions } from "react-router-dom
 // All routes that have an /embed/* equivalent
 const EMBED_ROUTES = new Set([
   "/dashboard",
+  "/dashboard/metricas",
   "/agenda",
   "/simulado-filtros",
   "/simulado",
