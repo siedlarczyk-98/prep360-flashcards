@@ -41,7 +41,7 @@ function diasRestantes(dateStr: string): number {
 }
 
 const Agenda = () => {
-  const navigate = useNavigate();
+  const navigate = useEmbedNavigate();
   const [filter, setFilter] = useState<FilterType>("todos");
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(new Date()));

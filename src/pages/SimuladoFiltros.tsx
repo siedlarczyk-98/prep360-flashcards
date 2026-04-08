@@ -156,7 +156,7 @@ const ModeSelection = ({
 };
 
 const SimuladoFiltros = () => {
-  const navigate = useNavigate();
+  const navigate = useEmbedNavigate();
   const email = localStorage.getItem("userEmail") || "";
 
   const [modo, setModo] = useState<Modo | null>(null);

@@ -26,7 +26,7 @@ export interface Discipline {
 }
 
 const Dashboard = ({ email, onLogout }: DashboardProps) => {
-  const navigate = useNavigate();
+  const navigate = useEmbedNavigate();
   const queryClient = useQueryClient();
   const [studyMode, setStudyMode] = useState(false);
   const [studyCards, setStudyCards] = useState<FlashCard[]>([]);
