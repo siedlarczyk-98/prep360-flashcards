@@ -2,8 +2,6 @@
  * CONFIGURAÇÃO BASE
  * Unificada para o novo padrão do backend (/api)
  */
-const BASE_URL = "http://localhost:3002/api";
-
 /**
  * Wrapper autenticado para fetch.
  * Injeta Authorization: Bearer <token> e trata 401/403 (sessão expirada).
@@ -34,7 +32,7 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
 
 /** Login: identifica usuário e retorna JWT */
 export async function identificarUsuario(email: string, userId?: number): Promise<{ token: string }> {
-  const res = await fetch(`${BASE_URL}/auth/identificar-usuario`, {
+  const res = await fetch(`${import.meta.env.VITE_BASE_URL}/auth/identificar-usuario`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, userId }),
@@ -116,21 +114,21 @@ export type DifficultyLevel = "again" | "hard" | "good" | "easy" | "dificil" | "
 
 /** Agenda unificada: Aulas, Simulados e Flashcards por tema */
 export async function fetchAgendaCompleta(pagina = 1, limite = 10): Promise<AgendaCompleta> {
-  const res = await authFetch(`${BASE_URL}/agenda-completa?pagina=${pagina}&limite=${limite}`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/agenda-completa?pagina=${pagina}&limite=${limite}`);
   if (!res.ok) throw new Error("Erro ao buscar agenda completa");
   return res.json();
 }
 
 /** Cards para revisar HOJE (SRS) — também usado como lista geral */
 export async function fetchCards(): Promise<FlashCard[]> {
-  const res = await authFetch(`${BASE_URL}/cards-para-hoje`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/cards-para-hoje`);
   if (!res.ok) return [];
   return res.json();
 }
 
 /** Cards para revisar HOJE (SRS) */
 export async function fetchCardsForToday(): Promise<FlashCard[]> {
-  const res = await authFetch(`${BASE_URL}/cards-para-hoje`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/cards-para-hoje`);
   if (!res.ok) throw new Error("Erro ao buscar cards para hoje");
   return res.json();
 }
@@ -138,7 +136,7 @@ export async function fetchCardsForToday(): Promise<FlashCard[]> {
 /** Estatísticas do Dashboard (rota modular) */
 export async function fetchProgressStats(): Promise<ProgressStats> {
   try {
-    const res = await authFetch(`${BASE_URL}/stats/progresso-srs`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/stats/progresso-srs`);
     if (!res.ok) {
       console.error(`[fetchProgressStats] HTTP ${res.status}: ${res.statusText}`);
       return { aprendendo: 0, revisando: 0, memorizados: 0 };
@@ -158,7 +156,7 @@ export interface ResumoSemanal {
 
 export async function fetchResumoSemanal(): Promise<ResumoSemanal> {
   try {
-    const res = await authFetch(`${BASE_URL}/stats/resumo-7-dias`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/stats/resumo-7-dias`);
     if (!res.ok) {
       console.error(`[fetchResumoSemanal] HTTP ${res.status}: ${res.statusText}`);
       return { flashcards: 0, questoes: 0 };
@@ -172,7 +170,7 @@ export async function fetchResumoSemanal(): Promise<ResumoSemanal> {
 
 /** Progresso por matéria */
 export async function fetchProgressoDisciplinas(): Promise<ProgressoDisciplina[]> {
-  const res = await authFetch(`${BASE_URL}/progresso-disciplinas`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/progresso-disciplinas`);
   if (!res.ok) return [];
   return res.json();
 }
@@ -184,21 +182,21 @@ export async function fetchCardsByStatus(status: DifficultyLevel): Promise<Flash
   if (status === "medio") statusParaBanco = "good";
   if (status === "facil") statusParaBanco = "easy";
 
-  const res = await authFetch(`${BASE_URL}/cards-por-status?nivel=${statusParaBanco}`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/cards-por-status?nivel=${statusParaBanco}`);
   if (!res.ok) return [];
   return res.json();
 }
 
 /** Cards que o usuário ainda não começou a estudar */
 export async function fetchNewCards(): Promise<FlashCard[]> {
-  const res = await authFetch(`${BASE_URL}/cards-novos`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/cards-novos`);
   if (!res.ok) return [];
   return res.json();
 }
 
 /** Estudo Manual: busca cards filtrados opcionalmente por aula */
 export async function fetchEstudoManual(aulaId?: string): Promise<FlashCard[]> {
-  let url = `${BASE_URL}/estudo-manual`;
+  let url = `${import.meta.env.VITE_BASE_URL}/estudo-manual`;
   if (aulaId) url += `?aula_id=${encodeURIComponent(aulaId)}`;
   const res = await authFetch(url);
   if (!res.ok) return [];
@@ -219,7 +217,7 @@ export interface AulaComQuestoes {
 
 /** Busca aulas que possuem questões disponíveis para o aluno */
 export async function fetchAulasComQuestoes(): Promise<AulaComQuestoes[]> {
-  const res = await authFetch(`${BASE_URL}/questoes/aulas-disponiveis`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/aulas-disponiveis`);
   if (!res.ok) return [];
   return res.json();
 }
@@ -237,7 +235,7 @@ export interface ResumoHome {
 
 export async function fetchResumoHome(): Promise<ResumoHome | null> {
   try {
-    const res = await authFetch(`${BASE_URL}/questoes/resumo-home`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/resumo-home`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -248,7 +246,7 @@ export async function fetchResumoHome(): Promise<ResumoHome | null> {
 /** Lista de instituições disponíveis para o modo simulado */
 export async function fetchInstituicoes(): Promise<string[]> {
   try {
-    const res = await authFetch(`${BASE_URL}/questoes/instituicoes`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/instituicoes`);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -261,7 +259,7 @@ export async function fetchInstituicoes(): Promise<string[]> {
 
 /** Registra feedback do SRS (again, hard, good, easy) */
 export async function registerStudy(cardId: number, resposta: string) {
-  const res = await authFetch(`${BASE_URL}/revisar`, {
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/revisar`, {
     method: "POST",
     body: JSON.stringify({ card_id: cardId, resposta }),
   });
@@ -291,14 +289,14 @@ export async function fetchQuestoes(params: {
   if (params.limite) parts.push(`limite=${params.limite}`);
 
   const queryString = parts.length > 0 ? `?${parts.join("&")}` : "";
-  const res = await authFetch(`${BASE_URL}/questoes${queryString}`);
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes${queryString}`);
   if (!res.ok) throw new Error("Erro ao buscar questões");
   return res.json();
 }
 
 /** Envia a resposta do aluno e recebe o veredito */
 export async function responderQuestao(questao_id: number, escolha: string): Promise<ResultadoResposta> {
-  const res = await authFetch(`${BASE_URL}/questoes/responder`, {
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/responder`, {
     method: "POST",
     body: JSON.stringify({ questao_id, escolha }),
   });
@@ -308,7 +306,7 @@ export async function responderQuestao(questao_id: number, escolha: string): Pro
 
 /** Envia feedback sobre o comentário do professor */
 export async function enviarFeedbackProf(questao_id: number, util: boolean): Promise<{ success: boolean }> {
-  const res = await authFetch(`${BASE_URL}/questoes/feedback-prof`, {
+  const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/feedback-prof`, {
     method: "POST",
     body: JSON.stringify({ questao_id, util }),
   });
@@ -325,7 +323,7 @@ export interface EstatisticasAula {
 
 export async function fetchEstatisticasAula(aulaId: string): Promise<EstatisticasAula | null> {
   try {
-    const res = await authFetch(`${BASE_URL}/questoes/estatisticas-aula?aula_id=${encodeURIComponent(aulaId)}`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/estatisticas-aula?aula_id=${encodeURIComponent(aulaId)}`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -342,7 +340,7 @@ export interface RaioXQuestao {
 
 export async function fetchRaioXQuestao(questaoId: number): Promise<RaioXQuestao | null> {
   try {
-    const res = await authFetch(`${BASE_URL}/questoes/raio-x/${questaoId}`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/questoes/raio-x/${questaoId}`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -369,7 +367,7 @@ export interface AtividadeDiaria {
 
 export async function fetchAtividadeDiaria(): Promise<AtividadeDiaria[]> {
   try {
-    const res = await authFetch(`${BASE_URL}/stats/atividade-diaria`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/stats/atividade-diaria`);
     if (!res.ok) {
       console.error(`[fetchAtividadeDiaria] HTTP ${res.status}: ${res.statusText}`);
       return [];
@@ -396,7 +394,7 @@ export interface DesempenhoArea {
 
 export async function fetchDesempenhoQuestoes(tentativa: "primeira" | "ultima"): Promise<DesempenhoArea[]> {
   try {
-    const res = await authFetch(`${BASE_URL}/stats/desempenho-questoes?tentativa=${tentativa}`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/stats/desempenho-questoes?tentativa=${tentativa}`);
     if (!res.ok) {
       console.error(`[fetchDesempenhoQuestoes] HTTP ${res.status}: ${res.statusText}`);
       return [];
@@ -427,7 +425,7 @@ export async function fetchDesempenhoComparativo(
   tentativa: "primeira" | "ultima",
 ): Promise<ResultadoComparativo | null> {
   try {
-    const res = await authFetch(`${BASE_URL}/stats/desempenho-comparativo?tentativa=${tentativa}`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/stats/desempenho-comparativo?tentativa=${tentativa}`);
     console.log("[comparativo] status:", res.status);
     if (!res.ok) return null;
     const data = await res.json();
@@ -476,7 +474,7 @@ export async function syncWithAnki(cards: FlashCard[]) {
 
 export async function fetchOnboardingWeb(): Promise<boolean> {
   try {
-    const res = await authFetch(`${BASE_URL}/perfil`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/perfil`);
     if (!res.ok) return false;
     const data = await res.json();
     return data.onboarding_web ?? false;
@@ -487,7 +485,7 @@ export async function fetchOnboardingWeb(): Promise<boolean> {
 
 export async function marcarOnboardingWeb(): Promise<void> {
   try {
-    await authFetch(`${BASE_URL}/perfil/onboarding-web`, { method: "PATCH" });
+    await authFetch(`${import.meta.env.VITE_BASE_URL}/perfil/onboarding-web`, { method: "PATCH" });
   } catch {
     console.error("Erro ao marcar onboarding web");
   }
@@ -503,7 +501,7 @@ export interface Perfil {
 
 export async function fetchPerfil(): Promise<Perfil | null> {
   try {
-    const res = await authFetch(`${BASE_URL}/perfil`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/perfil`);
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -513,7 +511,7 @@ export async function fetchPerfil(): Promise<Perfil | null> {
 
 export async function fetchEspecialidades(): Promise<{ id: number; nome: string }[]> {
   try {
-    const res = await authFetch(`${BASE_URL}/perfil/especialidades`);
+    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}/perfil/especialidades`);
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -524,7 +522,7 @@ export async function fetchEspecialidades(): Promise<{ id: number; nome: string 
 export async function salvarEspecialidades(especialidades: string[]): Promise<void> {
   try {
     const perfil = await fetchPerfil();
-    await authFetch(`${BASE_URL}/perfil`, {
+    await authFetch(`${import.meta.env.VITE_BASE_URL}/perfil`, {
       method: "POST",
       body: JSON.stringify({
         nome: perfil?.nome || "",
