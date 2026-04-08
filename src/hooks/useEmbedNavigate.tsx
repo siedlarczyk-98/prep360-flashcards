@@ -14,13 +14,18 @@ const toEmbedPath = (path: string): string | null => {
   // Already an embed path
   if (path.startsWith("/embed/")) return path;
 
+  // Separate pathname from search and hash
+  const url = new URL(path, "http://_");
+  const pathname = url.pathname;
+  const suffix = url.search + url.hash;
+
   // Direct match
-  if (EMBED_ROUTES.has(path)) return `/embed${path}`;
+  if (EMBED_ROUTES.has(pathname)) return `/embed${pathname}${suffix}`;
 
   // Check if it starts with a known embed route (for sub-paths like /dashboard/estudo-manual)
   for (const route of EMBED_ROUTES) {
-    if (path.startsWith(route + "/")) {
-      return `/embed${path}`;
+    if (pathname.startsWith(route + "/")) {
+      return `/embed${pathname}${suffix}`;
     }
   }
 
