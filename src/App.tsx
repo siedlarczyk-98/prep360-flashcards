@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/simulado" element={<SimuladoView />} />
           <Route path="/dashboard/estudo-manual" element={<EstudoManualPage />} />
+          <Route path="/embed/dashboard" element={<EmbedDashboardPage />} />
 
           {/* With Navigation Rail */}
           <Route element={<AppLayout />}>
