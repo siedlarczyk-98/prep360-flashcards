@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEmbedNavigate } from "@/hooks/useEmbedNavigate";
 import Dashboard from "@/components/Dashboard";
 
 const DashboardPage = () => {
-  const navigate = useNavigate();
+  const navigate = useEmbedNavigate();
   const email = localStorage.getItem("userEmail") || "";
 
   useEffect(() => {
