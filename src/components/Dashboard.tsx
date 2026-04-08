@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCards, fetchCardsForToday, fetchNewCards, fetchProgressStats, FlashCard, syncWithAnki, fetchProgressoDisciplinas } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Loader2, ArrowLeft, Calendar, Sparkles, Brain, BarChart3, Trophy, Lightbulb, Info, BookOpen } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEmbedNavigate } from "@/hooks/useEmbedNavigate";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import FlashCardItem from "./FlashCardItem";

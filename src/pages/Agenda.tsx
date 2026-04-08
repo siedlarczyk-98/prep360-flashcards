@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgendaCompleta } from "@/lib/api";
-import { useNavigate } from "react-router-dom";
+import { useEmbedNavigate } from "@/hooks/useEmbedNavigate";
 import { Calendar, Zap, Play, Target, Trophy } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import AgendaCalendar from "@/components/AgendaCalendar";
