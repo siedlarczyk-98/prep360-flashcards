@@ -238,8 +238,7 @@ const SimuladoFiltros = () => {
   };
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="h-full w-full flex flex-col bg-background bg-circles-pattern overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background bg-circles-pattern overflow-hidden">
         {/* Content */}
         <main className="flex-1 overflow-y-auto px-4 py-4">
           <div className="max-w-2xl mx-auto space-y-5">
