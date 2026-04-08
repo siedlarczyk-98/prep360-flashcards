@@ -14,6 +14,7 @@ import SimuladoView from "./pages/SimuladoView.tsx";
 import SimuladoFiltros from "./pages/SimuladoFiltros.tsx";
 import EstudoManualPage from "./pages/EstudoManualPage.tsx";
 import MetricasPage from "./pages/MetricasPage.tsx";
+import EmbedDashboardPage from "./pages/EmbedDashboardPage.tsx";
 import AppLayout from "./components/AppLayout.tsx";
 
 const queryClient = new QueryClient();
