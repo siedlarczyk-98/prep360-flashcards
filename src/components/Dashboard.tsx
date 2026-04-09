@@ -286,38 +286,7 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
                 </div>
               )}
 
-              {/* Manual study */}
-              <div
-                className="rounded-xl bg-card border border-border p-4"
-                style={{ boxShadow: "var(--shadow-card)" }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-4 h-4 text-accent" />
-                  <p className="text-foreground font-semibold text-sm">Estudo Manual</p>
-                </div>
-                <div className="flex gap-2">
-                  <Select value={selectedCourseManual} onValueChange={(v) => setSelectedCourseManual(v)}>
-                    <SelectTrigger className="flex-1 h-9 text-xs rounded-lg">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todas">Todos os Cursos</SelectItem>
-                      {cursosUnicos.map(([id, nome]) => (
-                        <SelectItem key={id} value={String(id)}>
-                          {nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleEstudoManual}
-                    className="h-9 px-4 text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/85 rounded-lg"
-                  >
-                    <Play className="w-3.5 h-3.5 mr-1" />
-                    Iniciar Revisão
-                  </Button>
-                </div>
-              </div>
+
 
               {/* Disciplines */}
               {allCards.length > 0 && (
