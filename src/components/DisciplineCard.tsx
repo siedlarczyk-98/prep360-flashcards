@@ -17,32 +17,31 @@ const DisciplineCard = ({ name, totalCards, studiedCards, onClick, index }: Disc
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 * index }}
+      transition={{ delay: index * 0.05 }}
       onClick={onClick}
-      className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-accent/40 transition-all hover:shadow-md group"
+      className="rounded-xl bg-card border border-border p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-            <BookOpen className="w-5 h-5 text-secondary" />
+          <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground leading-tight">{name}</h3>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-foreground font-semibold text-sm">{name}</p>
+            <p className="text-muted-foreground text-xs">
               {totalCards} card{totalCards !== 1 ? "s" : ""} disponíve{totalCards !== 1 ? "is" : "l"}
             </p>
           </div>
         </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0 mt-1" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </div>
-
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
           <span>Progresso</span>
-          <span className="font-medium text-foreground">{progress}%</span>
+          <span>{progress}%</span>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-1.5" />
       </div>
     </motion.div>
   );

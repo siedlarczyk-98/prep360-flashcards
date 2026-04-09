@@ -4,48 +4,46 @@ import { FlashCard } from "@/lib/api";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-interface FlashCardItemProps {
-  card: FlashCard;
-}
-
-function formatTagLabel(tags: string | undefined): string {
-  if (!tags) return "";
-  const parts = tags.split("::");
+function formatTagLabel(tag: string | undefined): string {
+  if (!tag) return "";
+  const parts = tag.split("::");
   return parts[parts.length - 1]?.split(",")[0]?.trim() || "";
 }
 
-const FlashCardItem = ({ card }: FlashCardItemProps) => {
+const FlashCardItem = ({ card }: { card: FlashCard }) => {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <div
-      className="perspective-1000 cursor-pointer w-full"
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="perspective-1000 cursor-pointer"
       onClick={() => setFlipped(!flipped)}
     >
       <motion.div
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{ duration: 0.5, type: "spring", stiffness: 260, damping: 20 }}
         style={{ transformStyle: "preserve-3d" }}
-        className="relative w-full min-h-[200px]"
+        className="relative w-full min-h-[120px]"
       >
         {/* Front */}
         <div
-          className="backface-hidden absolute inset-0 rounded-xl border border-border bg-card p-6 flex flex-col justify-between transition-[visibility,opacity] duration-200"
+          className="backface-hidden absolute inset-0 rounded-xl bg-card border border-border p-4 flex flex-col justify-between transition-[visibility,opacity] duration-200"
           style={{
             boxShadow: "var(--shadow-card)",
             visibility: flipped ? "hidden" : "visible",
             opacity: flipped ? 0 : 1,
           }}
         >
-          <p className="text-foreground font-semibold text-lg leading-relaxed">{card.frente}</p>
-          <div className="flex items-center justify-between mt-4">
-            {card.tags && (
-              <Badge variant="secondary" className="text-xs font-normal">
-                {formatTagLabel(card.tags)}
+          <p className="text-foreground font-medium text-sm leading-relaxed">{card.front}</p>
+          <div className="flex items-center justify-between mt-3">
+            {card.tag_cont && (
+              <Badge variant="secondary" className="text-[10px] font-normal">
+                {formatTagLabel(card.tag_cont)}
               </Badge>
             )}
-            <div className="flex items-center gap-1 text-xs text-accent ml-auto">
-              <RotateCcw className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-[10px] text-accent ml-auto">
+              <RotateCcw className="w-2.5 h-2.5" />
               <span>Toque para virar</span>
             </div>
           </div>
@@ -53,28 +51,25 @@ const FlashCardItem = ({ card }: FlashCardItemProps) => {
 
         {/* Back */}
         <div
-          className="backface-hidden rotate-y-180 absolute inset-0 rounded-xl border border-accent bg-primary p-6 flex flex-col justify-between transition-[visibility,opacity] duration-200"
+          className="backface-hidden rotate-y-180 absolute inset-0 rounded-xl bg-card border-2 border-accent p-4 flex flex-col justify-between transition-[visibility,opacity] duration-200"
           style={{
-            boxShadow: "var(--shadow-elevated)",
+            boxShadow: "var(--shadow-card)",
             visibility: flipped ? "visible" : "hidden",
             opacity: flipped ? 1 : 0,
           }}
         >
           <div>
-            <p className="text-primary-foreground font-semibold text-lg leading-relaxed">{card.verso}</p>
-            {card.exemplo && (
-              <p className="text-primary-foreground/70 text-sm mt-4 italic border-t border-primary-foreground/20 pt-3">
-                💡 {card.exemplo}
+            <p className="text-foreground font-medium text-sm leading-relaxed">{card.back}</p>
+            {card.example && (
+              <p className="text-muted-foreground text-xs mt-2 italic border-t border-border pt-2">
+                💡 {card.example}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-1 text-xs text-primary-foreground/50 mt-4">
-            <RotateCcw className="w-3 h-3" />
-            <span>Toque para voltar</span>
-          </div>
+          <div className="text-[10px] text-muted-foreground mt-2 text-right">Toque para voltar</div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
