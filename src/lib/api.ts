@@ -338,7 +338,6 @@ export async function fetchQuestoes(params: {
   modo?: string;
   limite?: number;
   seed?: number;
-  teste_imagens?: boolean;
 }): Promise<Questao[]> {
   const parts: string[] = [];
   if (params.aula_id) parts.push(`aula_id=${encodeURIComponent(params.aula_id)}`);
@@ -349,8 +348,6 @@ export async function fetchQuestoes(params: {
   if (params.modo) parts.push(`modo=${encodeURIComponent(params.modo)}`);
   if (params.limite) parts.push(`limite=${params.limite}`);
   if (params.seed) parts.push(`seed=${params.seed}`);
-  if (params.teste_imagens) parts.push("teste_imagens=1");
-
   const queryString = parts.length > 0 ? `?${parts.join("&")}` : "";
   const res = await authFetch(`${BASE_URL}/questoes${queryString}`);
   if (!res.ok) throw new Error("Erro ao buscar questões");

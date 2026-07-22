@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
-  <rect width="720" height="360" rx="28" fill="#f4f7fa"/>
-  <g transform="translate(170 86) rotate(-18 190 94)">
-    <rect width="380" height="188" rx="94" fill="#ffffff" stroke="#1d4a73" stroke-width="12"/>
-    <path d="M190 0v188" stroke="#1d4a73" stroke-width="10"/>
-    <path d="M190 6h96a88 88 0 010 176h-96z" fill="#ff6b35" opacity=".9"/>
-  </g>
-  <text x="360" y="325" text-anchor="middle" font-family="Arial" font-size="24" fill="#1d3553">Imagem de teste — alternativa com medicamento</text>
-</svg>

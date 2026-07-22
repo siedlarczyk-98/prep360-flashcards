@@ -46,7 +46,7 @@ const MODOS = [
   },
   {
     value: "simulado-real" as Modo,
-    label: "Modo Simulado",
+    label: "Modo Treino",
     icon: ClipboardList,
     tooltip: "Treine como no dia da prova. Escolha o nº de questões",
   },
@@ -226,7 +226,6 @@ const SimuladoFiltros = () => {
       const params = new URLSearchParams();
       params.append("aula_id", aula.aula_id);
       params.append("limite", "20");
-      params.append("teste_imagens", "1");
       navigate(`/simulado?${params.toString()}`);
     }
   };
@@ -239,7 +238,6 @@ const SimuladoFiltros = () => {
       params.append("modo", "essenciais");
     }
     params.append("limite", "20");
-    params.append("teste_imagens", "1");
     navigate(`/simulado?${params.toString()}`);
   };
 
@@ -275,7 +273,6 @@ const SimuladoFiltros = () => {
       params.append("instituicao", instituicao);
       params.append("limite", limite.toString());
     }
-    params.append("teste_imagens", "1");
     navigate(`/simulado?${params.toString()}`);
   };
 

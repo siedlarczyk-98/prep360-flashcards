@@ -80,7 +80,6 @@ const SimuladoView = () => {
   const limite = searchParams.get("limite") ? Number(searchParams.get("limite")) : 20;
   const duracaoMin = searchParams.get("tempo") ? Number(searchParams.get("tempo")) : 0;
   const seed = searchParams.get("seed") ? Number(searchParams.get("seed")) : undefined;
-  const testeImagens = searchParams.get("teste_imagens") === "1";
   const tentativaId = searchParams.get("tentativa_id") ? Number(searchParams.get("tentativa_id")) : null;
   const isOfficial = Number.isInteger(tentativaId) && Number(tentativaId) > 0;
   const isExam = modo === "simulado" || isOfficial;
@@ -107,7 +106,7 @@ const SimuladoView = () => {
 
   const legacyQuery = useQuery({
     queryKey: ["questoes-simulado", email, modo, aulaId, grandeArea, instituicao, limite, seed],
-    queryFn: () => fetchQuestoes({ apenas_liberadas: true, modo, aula_id: aulaId, grande_area: grandeArea, instituicao, limite, seed, teste_imagens: testeImagens }),
+    queryFn: () => fetchQuestoes({ apenas_liberadas: true, modo, aula_id: aulaId, grande_area: grandeArea, instituicao, limite, seed }),
     enabled: !!email && !isOfficial,
     staleTime: isExam ? Infinity : 0,
   });
