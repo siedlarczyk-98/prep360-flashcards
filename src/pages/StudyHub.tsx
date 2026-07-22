@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Brain, Target, Loader2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,14 +58,7 @@ const StudyHub = () => {
     if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
 
-  useEffect(() => {
-    const interessesDefinidos = localStorage.getItem("interesses_definidos");
-    if (onboardingFeito === false && !loadingCards && !loadingQuestoes && interessesDefinidos) {
-      iniciarTour();
-    }
-  }, [onboardingFeito, loadingCards, loadingQuestoes]);
-
-  const iniciarTour = () => {
+  const iniciarTour = useCallback(() => {
     const tour = new Shepherd.Tour({
       useModalOverlay: true,
       defaultStepOptions: {
@@ -157,7 +150,14 @@ const StudyHub = () => {
 
     tourRef.current = tour;
     tour.start();
-  };
+  }, [email, queryClient]);
+
+  useEffect(() => {
+    const interessesDefinidos = localStorage.getItem("interesses_definidos");
+    if (onboardingFeito === false && !loadingCards && !loadingQuestoes && interessesDefinidos) {
+      iniciarTour();
+    }
+  }, [onboardingFeito, loadingCards, loadingQuestoes, iniciarTour]);
 
   if (!email) return null;
 

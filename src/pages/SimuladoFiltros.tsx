@@ -15,16 +15,21 @@ import {
   Star,
   Rocket,
   CheckCircle2,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { fetchAulasComQuestoes, fetchInstituicoes, type AulaComQuestoes } from "@/lib/api";
+import {
+  fetchAulasComQuestoes, fetchInstituicoes,
+  fetchSimuladosOficiais, iniciarSimuladoOficial,
+  type AulaComQuestoes, type SimuladoOficial,
+} from "@/lib/api";
 import logoIsotipo from "@/assets/logo-isotipo.png";
 
-type Modo = "pos-aula" | "grande-area" | "simulado-real";
+type Modo = "pos-aula" | "grande-area" | "simulado-real" | "simulados";
 
 const MODOS = [
   {
@@ -41,14 +46,27 @@ const MODOS = [
   },
   {
     value: "simulado-real" as Modo,
-    label: "Modo Simulado",
+    label: "Modo Treino",
     icon: ClipboardList,
     tooltip: "Treine como no dia da prova. Escolha o nº de questões",
+  },
+  {
+    value: "simulados" as Modo,
+    label: "Simulados",
+    icon: Trophy,
+    tooltip: "Faça provas prontas, com questões e duração definidas pela equipe.",
   },
 ];
 
 const GRANDES_AREAS = ["Clínica Médica", "Cirurgia", "Ginecologia e Obstetrícia", "Pediatria", "Medicina Preventiva"];
 const LIMITES = [10, 20, 40, 60, 80, 120];
+
+const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (!hours) return `${rest} min`;
+  return rest ? `${hours}h${String(rest).padStart(2, "0")}` : `${hours}h`;
+};
 
 const ModeSelection = ({
   aula,
@@ -165,6 +183,9 @@ const SimuladoFiltros = () => {
   const [grandeArea, setGrandeArea] = useState<string>("");
   const [instituicao, setInstituicao] = useState<string>("");
   const [limite, setLimite] = useState<number>(20);
+  const [simuladoSelecionado, setSimuladoSelecionado] = useState<SimuladoOficial | null>(null);
+  const [tempoOficial, setTempoOficial] = useState<"livre" | "cronometrado">("cronometrado");
+  const [iniciandoOficial, setIniciandoOficial] = useState(false);
   const [selectedAula, setSelectedAula] = useState<AulaComQuestoes | null>(null);
 
   const { data: aulasDisponiveis = [], isLoading } = useQuery({
@@ -177,6 +198,12 @@ const SimuladoFiltros = () => {
     queryKey: ["instituicoes", email],
     queryFn: fetchInstituicoes,
     enabled: modo === "simulado-real",
+  });
+
+  const { data: simuladosOficiais = [], isLoading: isLoadingSimulados } = useQuery({
+    queryKey: ["simulados-oficiais", email],
+    queryFn: fetchSimuladosOficiais,
+    enabled: modo === "simulados" && !!email,
   });
 
   const aulasFiltradas = useMemo(() => {
@@ -217,10 +244,22 @@ const SimuladoFiltros = () => {
   const canStart =
     (modo === "pos-aula" && aulaId) ||
     (modo === "grande-area" && grandeArea) ||
-    (modo === "simulado-real" && instituicao);
+    (modo === "simulado-real" && instituicao) ||
+    (modo === "simulados" && simuladoSelecionado);
 
-  const handleIniciar = () => {
+  const handleIniciar = async () => {
     if (!canStart) return;
+    if (modo === "simulados" && simuladoSelecionado) {
+      setIniciandoOficial(true);
+      try {
+        const tentativa = await iniciarSimuladoOficial(simuladoSelecionado.id, tempoOficial);
+        navigate(`/simulado?tentativa_id=${tentativa.id}`);
+      } catch {
+        window.alert("Não foi possível iniciar o simulado. Tente novamente.");
+        setIniciandoOficial(false);
+      }
+      return;
+    }
     const params = new URLSearchParams();
     if (modo === "pos-aula") {
       params.append("aula_id", aulaId);
@@ -251,7 +290,7 @@ const SimuladoFiltros = () => {
               <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
                 1. Escolha o Modo de Estudo
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                 {MODOS.map((m) => {
                   const active = modo === m.value;
                   const Icon = m.icon;
@@ -266,6 +305,8 @@ const SimuladoFiltros = () => {
                             setGrandeArea("");
                             setInstituicao("");
                             setLimite(20);
+                            setSimuladoSelecionado(null);
+                            setTempoOficial("cronometrado");
                             setSelectedAula(null);
                           }}
                           className={`relative group rounded-xl border-2 p-4 text-left transition-all duration-200 ${
@@ -476,6 +517,80 @@ const SimuladoFiltros = () => {
                   </div>
                 </motion.section>
               )}
+
+              {modo === "simulados" && (
+                <motion.section
+                  key="simulados"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-5"
+                >
+                  <div>
+                    <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      2. Selecione o Simulado
+                    </h2>
+                    {isLoadingSimulados ? (
+                      <div className="flex items-center gap-2 py-4 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-xs">Carregando simulados...</span>
+                      </div>
+                    ) : simuladosOficiais.length ? (
+                      <Select
+                        value={simuladoSelecionado ? String(simuladoSelecionado.id) : ""}
+                        onValueChange={(value) => {
+                          const selected = simuladosOficiais.find((item) => String(item.id) === value) || null;
+                          setSimuladoSelecionado(selected);
+                          setTempoOficial("cronometrado");
+                        }}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl border-2 border-border bg-card text-xs font-semibold focus:border-primary">
+                          <SelectValue placeholder="Escolha um simulado..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {simuladosOficiais.map((item) => (
+                            <SelectItem key={item.id} value={String(item.id)} className="py-2.5 text-xs font-medium">
+                              {item.nome} · {item.quantidade_questoes} questões
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="rounded-xl border border-dashed p-5 text-center text-xs text-muted-foreground">
+                        Nenhum simulado publicado no momento.
+                      </div>
+                    )}
+                  </div>
+
+                  {simuladoSelecionado && (
+                    <div>
+                      <h2 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        3. Tempo de simulado
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {simuladoSelecionado.permite_sem_limite && (
+                          <button
+                            onClick={() => setTempoOficial("livre")}
+                            className={`h-12 rounded-xl border-2 px-4 text-xs font-bold transition-all ${tempoOficial === "livre" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+                          >
+                            Sem limite
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setTempoOficial("cronometrado")}
+                          className={`h-12 rounded-xl border-2 px-4 text-xs font-bold transition-all ${tempoOficial === "cronometrado" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/40"}`}
+                        >
+                          {formatDuration(simuladoSelecionado.duracao_minutos)}
+                        </button>
+                      </div>
+                      <p className="mt-2 text-[10px] text-muted-foreground">
+                        Sem limite mostra o tempo utilizado. Com {formatDuration(simuladoSelecionado.duracao_minutos)}, a prova é entregue automaticamente ao zerar.
+                      </p>
+                    </div>
+                  )}
+                </motion.section>
+              )}
             </AnimatePresence>
           </div>
         </main>
@@ -487,11 +602,11 @@ const SimuladoFiltros = () => {
               <Button
                 size="lg"
                 onClick={handleIniciar}
-                disabled={!canStart}
+                disabled={!canStart || iniciandoOficial}
                 className="w-full h-10 text-xs font-semibold gap-2 disabled:opacity-40"
               >
-                <Play className="w-3.5 h-3.5" />
-                Iniciar Simulado
+                {iniciandoOficial ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                {iniciandoOficial ? "Preparando prova..." : "Iniciar Simulado"}
               </Button>
             </div>
           </footer>

@@ -58,45 +58,61 @@ const MetricasPage = () => {
 
   useEffect(() => {
     if (!email) { navigate("/", { replace: true }); return; }
+
+    let cancelled = false;
     setLoading(true);
     Promise.all([
       fetchResumoSemanal(),
       fetchProgressStats(),
       fetchAtividadeDiaria(),
-      fetchDesempenhoQuestoes(tentativa),
-      fetchDesempenhoComparativo(tentativa),
     ])
-      .then(([r, s, a, d, c]) => {
+      .then(([r, s, a]) => {
+        if (cancelled) return;
         setResumo(r);
         setSrs(s);
         setAtividade(a);
-        setDesempenho(d);
-        if (c) setComparativo(c);
       })
       .catch((err) => {
+        if (cancelled) return;
         setError("Não foi possível carregar as métricas.");
         toast.error("Erro ao carregar métricas", { description: String(err?.message || err) });
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [email, navigate]);
 
   useEffect(() => {
-    if (loading || !email) return;
+    if (!email) return;
+
+    let cancelled = false;
     setLoadingDesempenho(true);
     Promise.all([
       fetchDesempenhoQuestoes(tentativa),
       fetchDesempenhoComparativo(tentativa),
     ])
       .then(([d, c]) => {
+        if (cancelled) return;
         setDesempenho(d);
         if (c) setComparativo(c);
       })
       .catch(() => {
+        if (cancelled) return;
         setDesempenho([]);
         toast.error("Erro ao carregar desempenho por área");
       })
-      .finally(() => setLoadingDesempenho(false));
-  }, [tentativa]);
+      .finally(() => {
+        if (!cancelled) setLoadingDesempenho(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email, tentativa]);
 
   const days = useMemo(() => fillLast7Days(atividade), [atividade]);
   const maxVolume = useMemo(() => Math.max(...days.map((d) => d.flashcards + d.questoes + d.aulas), 1), [days]);

@@ -2,7 +2,9 @@
  * CONFIGURAÇÃO BASE
  * Unificada para o novo padrão do backend (/api)
  */
-const BASE_URL = "https://prep360.up.railway.app/api";
+const BASE_URL = import.meta.env.DEV
+  ? "/api"
+  : "https://prep360.up.railway.app/api";
 
 /**
  * Wrapper autenticado para fetch.
@@ -89,6 +91,19 @@ export interface ProgressoDisciplina {
   progresso_percentual: number;
 }
 
+export type QuestaoAlternativa = string | {
+  texto?: string;
+  text?: string;
+  label?: string;
+  imagem_url?: string;
+  image_url?: string;
+  imagem?: string;
+  image?: string;
+  imagem_alt?: string;
+  image_alt?: string;
+  alt?: string;
+};
+
 export interface Questao {
   id: number;
   aula_id: string;
@@ -96,7 +111,7 @@ export interface Questao {
   grande_area: string;
   enunciado: string;
   img_url?: string;
-  alternativas: Record<string, string>;
+  alternativas: Record<string, QuestaoAlternativa>;
   instituicao?: string;
   ano?: number;
   dificuldade?: string;
@@ -108,6 +123,41 @@ export interface ResultadoResposta {
   gabarito_correto: string;
   feedback_prof: string;
   percentual_global_acerto?: number;
+}
+
+export interface ResultadoSimuladoItem extends ResultadoResposta {
+  questao_id: number;
+  escolha: string | null;
+  em_branco: boolean;
+  grande_area?: string;
+}
+
+export interface CorrecaoSimulado {
+  iniciado_em: string | null;
+  finalizado_em: string;
+  resultados: ResultadoSimuladoItem[];
+}
+
+export interface SimuladoOficial {
+  id: number;
+  nome: string;
+  descricao?: string;
+  quantidade_questoes: number;
+  duracao_minutos: number;
+  permite_sem_limite: boolean;
+  disponivel_inicio?: string;
+  disponivel_fim?: string;
+}
+
+export interface TentativaSimulado {
+  id: number;
+  status: "em_andamento" | "finalizado" | "expirado";
+  modalidade_tempo: "livre" | "cronometrado";
+  iniciado_em: string;
+  expira_em: string | null;
+  agora_servidor: string;
+  simulado: { id: number; nome: string; duracao_minutos: number; quantidade_questoes?: number };
+  questoes?: Array<Questao & { escolha?: string | null; marcada_revisao?: boolean }>;
 }
 
 export type DifficultyLevel = "again" | "hard" | "good" | "easy" | "dificil" | "medio" | "facil";
@@ -257,6 +307,13 @@ export async function fetchInstituicoes(): Promise<string[]> {
   }
 }
 
+export async function fetchDisponibilidadeInstituicao(instituicao: string): Promise<number> {
+  const res = await authFetch(`${BASE_URL}/questoes/disponibilidade?instituicao=${encodeURIComponent(instituicao)}`);
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return Number(data.total) || 0;
+}
+
 // --- 3. FUNÇÕES DE ENVIO (POST) ---
 
 /** Registra feedback do SRS (again, hard, good, easy) */
@@ -280,6 +337,7 @@ export async function fetchQuestoes(params: {
   apenas_liberadas?: boolean;
   modo?: string;
   limite?: number;
+  seed?: number;
 }): Promise<Questao[]> {
   const parts: string[] = [];
   if (params.aula_id) parts.push(`aula_id=${encodeURIComponent(params.aula_id)}`);
@@ -289,7 +347,7 @@ export async function fetchQuestoes(params: {
   if (params.apenas_liberadas) parts.push(`apenas_liberadas=true`);
   if (params.modo) parts.push(`modo=${encodeURIComponent(params.modo)}`);
   if (params.limite) parts.push(`limite=${params.limite}`);
-
+  if (params.seed) parts.push(`seed=${params.seed}`);
   const queryString = parts.length > 0 ? `?${parts.join("&")}` : "";
   const res = await authFetch(`${BASE_URL}/questoes${queryString}`);
   if (!res.ok) throw new Error("Erro ao buscar questões");
@@ -304,6 +362,71 @@ export async function responderQuestao(questao_id: number, escolha: string): Pro
   });
   if (!res.ok) throw new Error("Erro ao enviar resposta da questão");
   return res.json();
+}
+
+/** Corrige e registra todas as respostas apenas ao encerrar o simulado. */
+export async function corrigirSimulado(
+  questoes_ids: number[],
+  respostas: Record<string, string>,
+  iniciado_em: string,
+): Promise<CorrecaoSimulado> {
+  const res = await authFetch(`${BASE_URL}/questoes/corrigir-simulado`, {
+    method: "POST",
+    body: JSON.stringify({ questoes_ids, respostas, iniciado_em }),
+  });
+  if (!res.ok) throw new Error("Erro ao finalizar o simulado");
+  return res.json();
+}
+
+export async function fetchSimuladosOficiais(): Promise<SimuladoOficial[]> {
+  const res = await authFetch(`${BASE_URL}/simulados`);
+  if (!res.ok) throw new Error("Erro ao buscar simulados");
+  return res.json();
+}
+
+export async function iniciarSimuladoOficial(
+  simuladoId: number,
+  modalidade_tempo: "livre" | "cronometrado",
+): Promise<TentativaSimulado> {
+  const res = await authFetch(`${BASE_URL}/simulados/${simuladoId}/tentativas`, {
+    method: "POST",
+    body: JSON.stringify({ modalidade_tempo }),
+  });
+  if (!res.ok) throw new Error("Erro ao iniciar simulado");
+  return res.json();
+}
+
+export async function fetchTentativaSimulado(tentativaId: number): Promise<TentativaSimulado> {
+  const res = await authFetch(`${BASE_URL}/simulados/tentativas/${tentativaId}`);
+  if (!res.ok) throw new Error("Erro ao carregar tentativa");
+  return res.json();
+}
+
+export async function salvarRespostaSimulado(
+  tentativaId: number,
+  questaoId: number,
+  escolha: string | null,
+  marcada_revisao?: boolean,
+): Promise<void> {
+  const res = await authFetch(`${BASE_URL}/simulados/tentativas/${tentativaId}/respostas/${questaoId}`, {
+    method: "PUT",
+    body: JSON.stringify({ escolha, marcada_revisao }),
+  });
+  if (!res.ok) throw new Error("Erro ao salvar resposta");
+}
+
+export async function finalizarSimuladoOficial(tentativaId: number): Promise<CorrecaoSimulado & { resultados: Array<ResultadoSimuladoItem & { questao: Questao }> }> {
+  const res = await authFetch(`${BASE_URL}/simulados/tentativas/${tentativaId}/finalizar`, { method: "POST" });
+  if (!res.ok) throw new Error("Erro ao finalizar simulado");
+  return res.json();
+}
+
+export async function baixarRelatorioSimulado(tentativaId: number): Promise<{ blob: Blob; filename: string }> {
+  const res = await authFetch(`${BASE_URL}/simulados/tentativas/${tentativaId}/relatorio.pdf`);
+  if (!res.ok) throw new Error("Erro ao gerar relatório");
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  return { blob: await res.blob(), filename: match?.[1] || "relatorio-de-desempenho.pdf" };
 }
 
 /** Envia feedback sobre o comentário do professor */
@@ -428,13 +551,9 @@ export async function fetchDesempenhoComparativo(
 ): Promise<ResultadoComparativo | null> {
   try {
     const res = await authFetch(`${BASE_URL}/stats/desempenho-comparativo?tentativa=${tentativa}`);
-    console.log("[comparativo] status:", res.status);
     if (!res.ok) return null;
-    const data = await res.json();
-    console.log("[comparativo] data:", data);
-    return data;
-  } catch (err) {
-    console.error("[comparativo] erro:", err);
+    return await res.json();
+  } catch {
     return null;
   }
 }
@@ -442,12 +561,12 @@ export async function fetchDesempenhoComparativo(
 // --- 6. INTEGRAÇÃO ANKI ---
 
 export async function syncWithAnki(cards: FlashCard[]) {
-  const ankiRequest = async (action: string, params: any) => {
+  const ankiRequest = async (action: string, params: Record<string, unknown>) => {
     const res = await fetch("http://127.0.0.1:8765", {
       method: "POST",
       body: JSON.stringify({ action, version: 6, params }),
     });
-    const data = await res.json();
+    const data = (await res.json()) as { error?: string | null };
     if (data.error) throw new Error(data.error);
     return data;
   };
