@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Radiografia ilustrativa de tórax</title>
+  <desc id="desc">Ilustração de teste para validar imagens em enunciados médicos.</desc>
+  <rect width="640" height="360" rx="24" fill="#e8f0f6"/>
+  <rect x="150" y="22" width="340" height="316" rx="28" fill="#173b5f"/>
+  <path d="M320 58v238M305 76c-88 10-124 73-112 148 9 59 48 82 112 70zm30 0c88 10 124 73 112 148-9 59-48 82-112 70z" fill="#dce8f1" stroke="#7ea0b9" stroke-width="7"/>
+  <path d="M244 105c48 18 104 18 152 0M220 144c66 22 134 22 200 0M210 184c72 24 148 24 220 0M218 224c68 22 136 22 204 0M238 263c54 18 110 18 164 0" fill="none" stroke="#91adc2" stroke-width="5" opacity=".8"/>
+  <circle cx="382" cy="196" r="27" fill="#ff5a1f" opacity=".8"/>
+  <text x="320" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#173b5f">Imagem demonstrativa — radiografia</text>
+</svg>

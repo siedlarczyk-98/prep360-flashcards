@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useEmbedNavigate } from "@/hooks/useEmbedNavigate";
 import { motion } from "framer-motion";
-import { XCircle, CheckCircle2, ArrowLeft, MessageSquareText, Star } from "lucide-react";
+import { XCircle, CheckCircle2, ArrowLeft, MessageSquareText, Star, Clock3, MinusCircle, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import type { Questao } from "@/lib/api";
+import { parseAlternative } from "@/lib/questionContent";
+import { baixarRelatorioSimulado } from "@/lib/api";
 
 export interface RespostaHistorico {
   questao: Questao;
@@ -13,10 +15,13 @@ export interface RespostaHistorico {
   gabarito_correto: string;
   feedback_prof: string;
   percentual_global_acerto?: number;
+  em_branco?: boolean;
 }
 
 interface SimuladoCompletionProps {
   historico: RespostaHistorico[];
+  tempoSegundos?: number;
+  tentativaId?: number;
 }
 
 const safe = (v: number | undefined | null): number => {
@@ -24,15 +29,45 @@ const safe = (v: number | undefined | null): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
+const SimuladoCompletion = ({ historico, tempoSegundos = 0, tentativaId }: SimuladoCompletionProps) => {
   const navigate = useEmbedNavigate();
   const [openItems, setOpenItems] = useState<string[]>([]);
+  const [downloadingReport, setDownloadingReport] = useState(false);
+
+  const downloadReport = async () => {
+    if (!tentativaId || downloadingReport) return;
+    setDownloadingReport(true);
+    try {
+      const { blob, filename } = await baixarRelatorioSimulado(tentativaId);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    } catch {
+      window.alert("Não foi possível gerar o relatório agora. Tente novamente.");
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
 
   const totalQuestoes = historico.length;
   const acertos = historico.filter((r) => r.acertou).length;
-  const erros = totalQuestoes - acertos;
+  const emBranco = historico.filter((r) => r.em_branco).length;
+  const erros = totalQuestoes - acertos - emBranco;
   const percentual = totalQuestoes > 0 ? Math.round((acertos / totalQuestoes) * 100) : 0;
   const questoesErradas = historico.filter((r) => !r.acertou);
+  const desempenhoAreas = Object.values(historico.reduce<Record<string, { area: string; total: number; acertos: number }>>((acc, item) => {
+    const area = item.questao.grande_area || "Sem classificação";
+    acc[area] ||= { area, total: 0, acertos: 0 };
+    acc[area].total += 1;
+    if (item.acertou) acc[area].acertos += 1;
+    return acc;
+  }, {}));
+  const tempoFormatado = `${String(Math.floor(tempoSegundos / 3600)).padStart(2, "0")}:${String(Math.floor((tempoSegundos % 3600) / 60)).padStart(2, "0")}:${String(tempoSegundos % 60).padStart(2, "0")}`;
 
   const starCount = percentual >= 80 ? 3 : percentual >= 50 ? 2 : 1;
   const starMessage =
@@ -45,7 +80,7 @@ const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -125,7 +160,7 @@ const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
                 </div>
               </div>
 
-              <div className="flex-1 grid grid-cols-2 gap-3 w-full">
+              <div className="flex-1 grid grid-cols-3 gap-1.5 sm:gap-3 w-full">
                 <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-center">
                   <div className="flex items-center justify-center gap-1 mb-0.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
@@ -142,7 +177,28 @@ const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
                   <p className="text-xl font-black text-foreground">{safe(erros)}</p>
                   <p className="text-[10px] text-muted-foreground">de {safe(totalQuestoes)}</p>
                 </div>
+                <div className="rounded-xl bg-muted border border-border p-3 text-center">
+                  <div className="flex items-center justify-center gap-1 mb-0.5">
+                    <MinusCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-[11px] font-semibold text-muted-foreground">Em branco</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground">{safe(emBranco)}</p>
+                  <p className="text-[10px] text-muted-foreground">de {safe(totalQuestoes)}</p>
+                </div>
               </div>
+            </div>
+            <div className="mt-4 pt-4 border-t flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Clock3 className="w-4 h-4" /> Tempo de prova: <strong className="text-foreground tabular-nums">{tempoFormatado}</strong>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Desempenho por grande área</h2>
+            <div className="space-y-3">
+              {desempenhoAreas.map((item) => {
+                const pct = Math.round((item.acertos / item.total) * 100);
+                return <div key={item.area}><div className="flex justify-between text-xs mb-1"><span className="font-medium">{item.area}</span><span className="text-muted-foreground">{item.acertos}/{item.total} · {pct}%</span></div><div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} /></div></div>;
+              })}
             </div>
           </motion.div>
 
@@ -176,17 +232,16 @@ const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3">
-                          <p className="text-[10px] font-semibold text-destructive uppercase mb-1">Sua Resposta</p>
+                          <p className="text-[10px] font-semibold text-destructive uppercase mb-1">{item.em_branco ? "Não respondida" : "Sua Resposta"}</p>
                           <p className="text-xs text-foreground">
-                            <span className="font-bold">{item.escolha.toUpperCase()})</span>{" "}
-                            {item.questao.alternativas[item.escolha] || "—"}
+                            {item.em_branco ? "Questão entregue em branco" : <><span className="font-bold">{item.escolha.toUpperCase()})</span>{" "}{parseAlternative(item.questao.alternativas[item.escolha]).text || "Alternativa ilustrada"}</>}
                           </p>
                         </div>
                         <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
                           <p className="text-[10px] font-semibold text-primary uppercase mb-1">Gabarito Correto</p>
                           <p className="text-xs text-foreground">
                             <span className="font-bold">{item.gabarito_correto.toUpperCase()})</span>{" "}
-                            {item.questao.alternativas[item.gabarito_correto] || "—"}
+                            {parseAlternative(item.questao.alternativas[item.gabarito_correto]).text || "Alternativa ilustrada"}
                           </p>
                         </div>
                       </div>
@@ -225,15 +280,28 @@ const SimuladoCompletion = ({ historico }: SimuladoCompletionProps) => {
         </motion.div>
       </main>
 
-      <footer className="shrink-0 px-6 py-4 border-t border-border bg-background">
-        <div className="max-w-2xl mx-auto">
+      <footer className="shrink-0 px-3 py-3 sm:px-6 sm:py-4 border-t border-border bg-background">
+        <div className="mx-auto grid max-w-2xl grid-cols-2 gap-2 sm:gap-3">
           <Button
             size="lg"
+            variant="outline"
             onClick={() => navigate("/simulado-filtros")}
-            className="w-full h-12 text-sm font-semibold gap-2"
+            className="h-12 min-w-0 gap-1.5 px-2 text-xs font-semibold sm:gap-2 sm:px-4 sm:text-sm"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Finalizar e Voltar ao Dashboard
+            <ArrowLeft className="h-4 w-4 shrink-0" />
+            <span className="sm:hidden">Dashboard</span>
+            <span className="hidden sm:inline">Voltar ao Dashboard</span>
+          </Button>
+          <Button
+            size="lg"
+            onClick={downloadReport}
+            disabled={!tentativaId || downloadingReport}
+            className="h-12 min-w-0 gap-1.5 px-2 text-xs font-semibold sm:gap-2 sm:px-4 sm:text-sm"
+            title={!tentativaId ? "Disponível para simulados oficiais" : undefined}
+          >
+            {downloadingReport ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Download className="h-4 w-4 shrink-0" />}
+            <span className="sm:hidden">{downloadingReport ? "Gerando..." : "Relatório"}</span>
+            <span className="hidden sm:inline">{downloadingReport ? "Gerando relatório..." : "Relatório de Desempenho"}</span>
           </Button>
         </div>
       </footer>

@@ -18,7 +18,7 @@ const Index = () => {
     }
 
     setReady(true);
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async (email: string) => {
     setLoading(true);

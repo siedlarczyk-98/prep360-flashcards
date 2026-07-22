@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" rx="28" fill="#f4f7fa"/>
+  <path d="M70 260h580M90 50v230" stroke="#8ca0b3" stroke-width="5"/>
+  <path d="M95 235c70-10 80-45 135-50s70 45 125 20 62-120 128-115 70 115 157 125" fill="none" stroke="#ef5b2a" stroke-width="12" stroke-linecap="round"/>
+  <g fill="#1d4a73"><circle cx="230" cy="185" r="9"/><circle cx="355" cy="205" r="9"/><circle cx="483" cy="90" r="9"/></g>
+  <text x="360" y="325" text-anchor="middle" font-family="Arial" font-size="24" fill="#1d3553">Imagem de teste — curva clínica</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Prontuário clínico ilustrativo</title>
+  <desc id="desc">Ilustração de teste para validar imagens em enunciados médicos.</desc>
+  <rect width="640" height="360" rx="24" fill="#f5f8fb"/>
+  <rect x="112" y="34" width="416" height="292" rx="18" fill="white" stroke="#b9cad8" stroke-width="5"/>
+  <rect x="262" y="18" width="116" height="42" rx="12" fill="#173b5f"/>
+  <circle cx="196" cy="126" r="38" fill="#dce8f1"/>
+  <path d="M181 126h30M196 111v30" stroke="#ff5a1f" stroke-width="9" stroke-linecap="round"/>
+  <path d="M260 100h192M260 132h148M164 196h288M164 228h288M164 260h204" stroke="#9db3c5" stroke-width="12" stroke-linecap="round"/>
+  <path d="M414 272l16 16 36-45" fill="none" stroke="#173b5f" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="320" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#173b5f">Imagem demonstrativa — prontuário</text>
+</svg>

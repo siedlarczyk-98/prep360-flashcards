@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, useMemo, type ReactNode } from "react";
-import { useNavigate, useLocation, type NavigateOptions } from "react-router-dom";
+import { useNavigate, type NavigateOptions } from "react-router-dom";
 
 // All routes that have an /embed/* equivalent
 const EMBED_ROUTES = new Set([
@@ -56,8 +56,6 @@ export const useIsEmbed = () => useContext(EmbedContext).isEmbed;
 export const useEmbedNavigate = () => {
   const navigate = useNavigate();
   const { isEmbed } = useContext(EmbedContext);
-  const location = useLocation();
-
   return useCallback(
     (to: string | number, options?: NavigateOptions) => {
       if (typeof to === "number") {
@@ -76,6 +74,6 @@ export const useEmbedNavigate = () => {
       }
       // No matching embed route → stay on current page (no-op)
     },
-    [navigate, isEmbed, location.pathname]
+    [navigate, isEmbed]
   );
 };

@@ -1,6 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchCardsForToday, fetchNewCards, fetchProgressStats, FlashCard, syncWithAnki, fetchProgressoDisciplinas, fetchEstudoManual } from "@/lib/api";
+import {
+  fetchCardsForToday,
+  fetchNewCards,
+  fetchProgressStats,
+  syncWithAnki,
+  fetchProgressoDisciplinas,
+  fetchEstudoManual,
+  type FlashCard,
+  type ProgressoDisciplina,
+} from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Loader2, ArrowLeft, Calendar, Sparkles, Brain, BarChart3, Trophy, Lightbulb, Info, BookOpen } from "lucide-react";
 import { useEmbedNavigate } from "@/hooks/useEmbedNavigate";
@@ -121,7 +130,6 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
     const aulaParam = selectedAulaManual === "todas" ? undefined : selectedAulaManual;
     setSyncing(true);
     try {
-      const { fetchEstudoManual } = await import("@/lib/api");
       const cards = await fetchEstudoManual(aulaParam);
       if (cards.length === 0) {
         toast.info("Nenhum card encontrado para sincronizar.");
@@ -129,8 +137,8 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
       }
       const result = await syncWithAnki(cards);
       toast.success(`✅ ${result.count} cards sincronizados!`, { description: "Cards exportados para o deck 'Paciente360' no Anki!", duration: 5000 });
-    } catch (err: any) {
-      if (err.message === "ANKI_NOT_CONNECTED") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === "ANKI_NOT_CONNECTED") {
         setAnkiDialog(true);
       } else {
         toast.error("Falha na sincronização", { description: "Verifique se o Anki está aberto com o plugin AnkiConnect ativo.", duration: 6000 });
@@ -152,7 +160,10 @@ const Dashboard = ({ email, onLogout }: DashboardProps) => {
     if (!progressoDisciplinas || progressoDisciplinas.length === 0) return 0;
     const cardIds = new Set(discCards.map((c) => c.id));
     const matching = progressoDisciplinas.filter((p) => cardIds.has(Number(p.aula_id)));
-    const safePct = (p: any) => (Number.isFinite(Number(p.progresso_percentual)) ? Number(p.progresso_percentual) : 0);
+    const safePct = (progress: ProgressoDisciplina) => {
+      const percentage = Number(progress.progresso_percentual);
+      return Number.isFinite(percentage) ? percentage : 0;
+    };
     if (matching.length > 0) {
       const avg = matching.reduce((sum, p) => sum + safePct(p), 0) / matching.length;
       return Number.isFinite(avg) ? Math.round(avg) : 0;
